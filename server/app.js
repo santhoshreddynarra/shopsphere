@@ -5,6 +5,8 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
+import userRoutes from './routes/userRoutes.js';
+
 const app = express();
 
 // Basic Middleware
@@ -14,6 +16,9 @@ app.use(cookieParser());
 app.use(cors()); // Configure properly later
 app.use(helmet());
 app.use(morgan('dev'));
+
+// Routes
+app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
