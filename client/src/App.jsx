@@ -15,7 +15,7 @@ const App = () => {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Public pages with layout */}
-        <Route element={<MainLayout><div /></MainLayout>}>
+        <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
         </Route>
 
