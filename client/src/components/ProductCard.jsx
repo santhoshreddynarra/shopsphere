@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Heart } from 'lucide-react';
 import StarRating from './StarRating.jsx';
 import Badge from './Badge.jsx';
 
@@ -11,24 +11,42 @@ const ProductCard = ({ product }) => {
     : 0;
   const displayPrice = hasDiscount ? product.discountPrice : product.price;
 
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    // Add wishlist logic here later
+  };
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    // Add cart logic here later
+  };
+
   return (
     <Link
       to={`/products/${product.slug}`}
-      className="group bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-indigo-500/50 hover:-translate-y-1 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10 flex flex-col"
+      className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200 flex flex-col relative"
     >
+      {/* Wishlist Button */}
+      <button 
+        onClick={handleWishlist}
+        className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-white transition-all shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100"
+      >
+        <Heart className="w-4 h-4" />
+      </button>
+
       {/* Image */}
-      <div className="relative overflow-hidden aspect-square bg-slate-800">
+      <div className="relative overflow-hidden aspect-[4/5] bg-slate-50">
         <img
           src={product.images[0]}
           alt={product.name}
           loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
           onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/400x400?text=No+Image';
+            e.target.src = 'https://via.placeholder.com/400x500?text=No+Image';
           }}
         />
         {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {product.isFeatured && <Badge label="Featured" variant="featured" />}
           {hasDiscount && <Badge label={`-${discountPercent}%`} variant="sale" />}
           {product.stock === 0 && <Badge label="Out of Stock" variant="outofstock" />}
@@ -36,33 +54,36 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-grow">
-        <p className="text-indigo-400 text-xs font-medium uppercase tracking-wide mb-1">
+      <div className="p-5 flex flex-col flex-grow bg-white">
+        <p className="text-indigo-600 text-xs font-bold uppercase tracking-wider mb-1.5">
           {product.brand}
         </p>
-        <h3 className="text-slate-200 font-semibold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-white transition">
+        <h3 className="text-slate-900 font-semibold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-indigo-600 transition-colors">
           {product.name}
         </h3>
 
-        <div className="flex items-center gap-1.5 mb-3">
+        <div className="flex items-center gap-1.5 mb-4">
           <StarRating rating={product.rating} />
-          <span className="text-slate-500 text-xs">({product.numReviews})</span>
+          <span className="text-slate-500 text-xs font-medium">({product.numReviews})</span>
         </div>
 
         <div className="mt-auto flex items-center justify-between">
-          <div>
-            <p className="text-white font-bold text-base">
+          <div className="flex flex-col">
+            <p className="text-slate-900 font-bold text-lg">
               ₹{displayPrice.toLocaleString('en-IN')}
             </p>
             {hasDiscount && (
-              <p className="text-slate-500 text-xs line-through">
+              <p className="text-slate-400 text-xs font-medium line-through">
                 ₹{product.price.toLocaleString('en-IN')}
               </p>
             )}
           </div>
-          <div className="w-8 h-8 bg-indigo-600/20 border border-indigo-500/30 rounded-lg flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-200">
-            <ShoppingCart className="w-4 h-4 text-indigo-400 group-hover:text-white transition-colors" />
-          </div>
+          <button 
+            onClick={handleAddToCart}
+            className="w-10 h-10 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-300 shadow-sm"
+          >
+            <ShoppingCart className="w-5 h-5 text-slate-600 group-hover:text-white transition-colors" />
+          </button>
         </div>
       </div>
     </Link>
