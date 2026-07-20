@@ -75,8 +75,6 @@ const addOrderItems = asyncHandler(async (req, res) => {
 
   const createdOrder = await order.save();
 
-  // Clear user cart
-  await Cart.findOneAndDelete({ user: req.user._id });
 
   res.status(201).json(createdOrder);
 });
