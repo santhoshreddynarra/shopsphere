@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, LogOut, Menu, X, ShoppingCart, Heart, User, MapPin } from 'lucide-react';
+import { ShoppingBag, Search, LogOut, Menu, X, ShoppingCart, Heart, User, MapPin, Package } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { logout } from '../features/auth/authSlice.js';
 import { fetchCart } from '../features/cart/cartSlice.js';
@@ -106,6 +106,9 @@ const Navbar = () => {
                   <Link to="/profile" className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2">
                     <User className="w-4 h-4" /> Profile
                   </Link>
+                  <Link to="/orders" className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2">
+                    <Package className="w-4 h-4" /> My Orders
+                  </Link>
                   <Link to="/addresses" className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2">
                     <MapPin className="w-4 h-4" /> Addresses
                   </Link>
@@ -194,6 +197,13 @@ const Navbar = () => {
                   className="text-slate-600 font-medium px-2 py-2 hover:bg-slate-50 rounded-lg flex items-center gap-2"
                 >
                   <User className="w-4 h-4" /> Profile ({userInfo.name})
+                </Link>
+                <Link
+                  to="/orders"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-slate-600 font-medium px-2 py-2 hover:bg-slate-50 rounded-lg flex items-center gap-2"
+                >
+                  <Package className="w-4 h-4" /> My Orders
                 </Link>
                 <Link
                   to="/addresses"

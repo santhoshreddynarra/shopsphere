@@ -11,6 +11,8 @@ import AddressPage from './pages/AddressPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import PaymentPage from './pages/PaymentPage.jsx';
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx';
+import MyOrdersPage from './pages/MyOrdersPage.jsx';
+import OrderDetailsPage from './pages/OrderDetailsPage.jsx';
 
 const App = () => {
   return (
@@ -31,6 +33,8 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<div className="max-w-7xl mx-auto py-6 px-4 text-slate-200">Profile</div>} />
           <Route path="/addresses" element={<AddressPage />} />
+          <Route path="/orders" element={<MyOrdersPage />} />
+          <Route path="/orders/:id" element={<OrderDetailsPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/order-success/:id" element={<OrderSuccessPage />} />
