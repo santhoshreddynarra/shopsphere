@@ -37,7 +37,22 @@ const createPaymentIntent = asyncHandler(async (req, res) => {
 // @route   POST /api/payment/webhook
 // @access  Public
 const stripeWebhook = asyncHandler(async (req, res) => {
-  res.status(200).send('Webhook received');
+  const sig = req.headers['stripe-signature'];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    // req.body must be the raw buffer (from express.raw)
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    console.error(`Webhook signature verification failed: ${err.message}`);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+    return; // Stop execution
+  }
+
+  // Event successfully verified
+  res.status(200).send('Webhook received and verified');
 });
 
 export { createPaymentIntent, stripeWebhook };
