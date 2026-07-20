@@ -9,6 +9,8 @@ import CartPage from './pages/CartPage.jsx';
 import WishlistPage from './pages/WishlistPage.jsx';
 import AddressPage from './pages/AddressPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
+import PaymentPage from './pages/PaymentPage.jsx';
+import OrderSuccessPage from './pages/OrderSuccessPage.jsx';
 
 const App = () => {
   return (
@@ -30,6 +32,8 @@ const App = () => {
           <Route path="/profile" element={<div className="max-w-7xl mx-auto py-6 px-4 text-slate-200">Profile</div>} />
           <Route path="/addresses" element={<AddressPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/order-success/:id" element={<OrderSuccessPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

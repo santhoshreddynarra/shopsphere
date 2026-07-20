@@ -51,8 +51,8 @@ const CheckoutPage = () => {
       alert('Please select a delivery address');
       return;
     }
-    // Proceed to Payment / Order creation (Next Phase)
-    alert('Order placement and payment will be implemented in the next phase.');
+    localStorage.setItem('selectedAddress', selectedAddress);
+    navigate('/payment');
   };
 
   return (
