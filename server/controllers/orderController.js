@@ -11,53 +11,72 @@ const addOrderItems = asyncHandler(async (req, res) => {
     orderItems,
     shippingAddress,
     paymentMethod,
+    paymentResult,
+    isPaid,
+    paidAt,
+  } = req.body;
+
+  if (!orderItems || orderItems.length === 0) {
+    res.status(400);
+    throw new Error('No order items');
+  }
+
+  let itemsPrice = 0;
+  const finalOrderItems = [];
+
+  for (const item of orderItems) {
+    const product = await Product.findById(item.product);
+    
+    if (!product) {
+      res.status(404);
+      throw new Error(`Product not found for ID: ${item.product}`);
+    }
+
+    if (product.stock < item.qty) {
+      res.status(400);
+      throw new Error(`Insufficient stock for ${product.name}`);
+    }
+
+    const actualPrice = product.discountPrice > 0 ? product.discountPrice : product.price;
+    itemsPrice += actualPrice * item.qty;
+
+    finalOrderItems.push({
+      name: product.name,
+      qty: item.qty,
+      image: product.images && product.images.length > 0 ? product.images[0] : '',
+      price: actualPrice,
+      product: product._id,
+    });
+
+    // Deduct stock
+    product.stock -= item.qty;
+    await product.save();
+  }
+
+  const taxPrice = 0;
+  const shippingPrice = 0;
+  const totalPrice = itemsPrice + taxPrice + shippingPrice;
+
+  const order = new Order({
+    orderItems: finalOrderItems,
+    user: req.user._id,
+    shippingAddress,
+    paymentMethod,
+    paymentResult,
+    isPaid: isPaid || false,
+    paidAt,
     itemsPrice,
     taxPrice,
     shippingPrice,
     totalPrice,
-  } = req.body;
+  });
 
-  if (orderItems && orderItems.length === 0) {
-    res.status(400);
-    throw new Error('No order items');
-  } else {
-    // Validate stock and reduce it
-    for (const item of orderItems) {
-      const product = await Product.findById(item.product);
-      if (!product) {
-        res.status(404);
-        throw new Error(`Product not found: ${item.name}`);
-      }
-      if (product.stock < item.qty) {
-        res.status(400);
-        throw new Error(`Insufficient stock for ${item.name}`);
-      }
-      product.stock -= item.qty;
-      await product.save();
-    }
+  const createdOrder = await order.save();
 
-    const order = new Order({
-      orderItems: orderItems.map((x) => ({
-        ...x,
-        product: x.product,
-        _id: undefined,
-      })),
-      user: req.user._id,
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice,
-    });
+  // Clear user cart
+  await Cart.findOneAndDelete({ user: req.user._id });
 
-    const createdOrder = await order.save();
-
-    // Clear user cart
-    await Cart.findOneAndDelete({ user: req.user._id });
-
-    res.status(201).json(createdOrder);
-  }
+  res.status(201).json(createdOrder);
 });
 
 // @desc    Get logged in user orders
