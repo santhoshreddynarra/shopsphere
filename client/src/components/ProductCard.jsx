@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { addToCart } from '../features/cart/cartSlice.js';
-import { addToWishlist } from '../features/wishlist/wishlistSlice.js';
+import { addToWishlist, removeFromWishlist } from '../features/wishlist/wishlistSlice.js';
 import StarRating from './StarRating.jsx';
 import Badge from './Badge.jsx';
 
@@ -23,7 +23,11 @@ const ProductCard = ({ product }) => {
 
   const handleWishlist = (e) => {
     e.preventDefault();
-    dispatch(addToWishlist({ product })); // passing the whole product for guest mode
+    if (inWishlist) {
+      dispatch(removeFromWishlist(product._id));
+    } else {
+      dispatch(addToWishlist({ product })); // passing the whole product for guest mode
+    }
   };
 
   const handleAddToCart = (e) => {

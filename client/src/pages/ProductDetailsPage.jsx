@@ -4,7 +4,7 @@ import { ShoppingCart, Heart, ShieldCheck, Truck, RefreshCw, ChevronRight } from
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { fetchProductBySlug, fetchRelatedProducts, clearProduct } from '../features/products/productSlice.js';
 import { addToCart } from '../features/cart/cartSlice.js';
-import { addToWishlist } from '../features/wishlist/wishlistSlice.js';
+import { addToWishlist, removeFromWishlist } from '../features/wishlist/wishlistSlice.js';
 import StarRating from '../components/StarRating.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
 import ProductCard from '../components/ProductCard.jsx';
@@ -79,7 +79,11 @@ const ProductDetailsPage = () => {
   };
 
   const handleWishlist = () => {
-    dispatch(addToWishlist({ product }));
+    if (inWishlist) {
+      dispatch(removeFromWishlist(product._id));
+    } else {
+      dispatch(addToWishlist({ product }));
+    }
   };
 
   return (
