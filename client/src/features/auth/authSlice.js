@@ -38,6 +38,9 @@ export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
   try {
     await authService.logout();
     localStorage.removeItem('userInfo');
+    localStorage.removeItem('cart');
+    localStorage.removeItem('wishlist');
+    return null;
   } catch (err) {
     return thunkAPI.rejectWithValue(err.message);
   }

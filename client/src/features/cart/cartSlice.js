@@ -84,7 +84,13 @@ const cartSlice = createSlice({
       // Clear Cart
       .addCase(clearCart.pending, (state) => { state.isLoading = true; })
       .addCase(clearCart.fulfilled, (state, action) => { state.isLoading = false; state.cart = action.payload; state.error = null; })
-      .addCase(clearCart.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; });
+      .addCase(clearCart.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
+      
+      // Clear Cart on Logout
+      .addCase('auth/logout/fulfilled', (state) => {
+        state.cart = { products: [], itemsPrice: 0, discount: 0, subtotal: 0, tax: 0, shipping: 0, totalAmount: 0 };
+        state.error = null;
+      });
   },
 });
 

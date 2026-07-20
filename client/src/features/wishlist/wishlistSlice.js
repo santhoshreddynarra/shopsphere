@@ -72,7 +72,13 @@ const wishlistSlice = createSlice({
       // Move to Cart
       .addCase(moveToCart.pending, (state) => { state.isLoading = true; })
       .addCase(moveToCart.fulfilled, (state, action) => { state.isLoading = false; state.wishlist = action.payload; state.error = null; })
-      .addCase(moveToCart.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; });
+      .addCase(moveToCart.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
+
+      // Clear Wishlist on Logout
+      .addCase('auth/logout/fulfilled', (state) => {
+        state.wishlist = { products: [] };
+        state.error = null;
+      });
   },
 });
 
