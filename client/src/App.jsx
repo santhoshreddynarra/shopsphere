@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import CartPage from './pages/CartPage.jsx';
+import WishlistPage from './pages/WishlistPage.jsx';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
         </Route>
 
         {/* Protected pages */}

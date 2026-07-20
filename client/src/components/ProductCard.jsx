@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { addToCart } from '../features/cart/cartSlice.js';
+import { addToWishlist } from '../features/wishlist/wishlistSlice.js';
 import StarRating from './StarRating.jsx';
 import Badge from './Badge.jsx';
 
@@ -15,12 +16,15 @@ const ProductCard = ({ product }) => {
 
   const dispatch = useAppDispatch();
   const { userInfo } = useAppSelector((state) => state.auth);
+  const { wishlist } = useAppSelector((state) => state.wishlist);
   const navigate = useNavigate();
+
+  const inWishlist = wishlist?.products?.some(p => p.productId === product._id || p.productId?._id === product._id);
 
   const handleWishlist = (e) => {
     e.preventDefault();
     if (!userInfo) return navigate('/login');
-    // Add wishlist logic here later
+    dispatch(addToWishlist(product._id));
   };
 
   const handleAddToCart = (e) => {
@@ -37,9 +41,11 @@ const ProductCard = ({ product }) => {
       {/* Wishlist Button */}
       <button 
         onClick={handleWishlist}
-        className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-white transition-all shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100"
+        className={`absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center transition-all shadow-sm focus:opacity-100 ${
+          inWishlist ? 'text-red-500 opacity-100' : 'text-slate-400 opacity-0 group-hover:opacity-100 hover:text-red-500'
+        }`}
       >
-        <Heart className="w-4 h-4" />
+        <Heart className={`w-4 h-4 ${inWishlist ? 'fill-current' : ''}`} />
       </button>
 
       {/* Image */}

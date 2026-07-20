@@ -4,6 +4,7 @@ import { ShoppingBag, Search, LogOut, Menu, X, ShoppingCart, Heart, User } from 
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { logout } from '../features/auth/authSlice.js';
 import { fetchCart } from '../features/cart/cartSlice.js';
+import { fetchWishlist } from '../features/wishlist/wishlistSlice.js';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,10 +13,12 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { userInfo } = useAppSelector((s) => s.auth);
   const { cart } = useAppSelector((s) => s.cart);
+  const { wishlist } = useAppSelector((s) => s.wishlist);
 
   useEffect(() => {
     if (userInfo) {
       dispatch(fetchCart());
+      dispatch(fetchWishlist());
     }
   }, [dispatch, userInfo]);
 
@@ -75,6 +78,11 @@ const Navbar = () => {
             <div className="flex items-center gap-4 border-l border-slate-200 pl-6">
               <Link to="/wishlist" className="text-slate-500 hover:text-indigo-600 transition-colors relative">
                 <Heart className="w-5 h-5" />
+                {wishlist?.products?.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {wishlist.products.length}
+                  </span>
+                )}
               </Link>
               <Link to="/cart" className="text-slate-500 hover:text-indigo-600 transition-colors relative">
                 <ShoppingCart className="w-5 h-5" />
