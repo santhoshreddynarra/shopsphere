@@ -90,8 +90,7 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Indexes for efficient querying
-productSchema.index({ slug: 1 });
+// Indexes for efficient querying (slug index created automatically via unique:true)
 productSchema.index({ category: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ rating: -1 });

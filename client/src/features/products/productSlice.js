@@ -1,30 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import productService, {
-  Product,
-  ProductsResponse,
-  Category,
-  ProductQueryParams,
-} from '../../services/productService';
+import productService from '../../services/productService.js';
 
-interface ProductState {
-  products: Product[];
-  featuredProducts: Product[];
-  relatedProducts: Product[];
-  product: Product | null;
-  categories: Category[];
-  pagination: {
-    page: number;
-    pages: number;
-    total: number;
-    limit: number;
-  };
-  isLoading: boolean;
-  isFeaturedLoading: boolean;
-  isDetailLoading: boolean;
-  error: string | null;
-}
-
-const initialState: ProductState = {
+const initialState = {
   products: [],
   featuredProducts: [],
   relatedProducts: [],
@@ -37,56 +14,56 @@ const initialState: ProductState = {
   error: null,
 };
 
-export const fetchProducts = createAsyncThunk<ProductsResponse, ProductQueryParams>(
+export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
   async (params, thunkAPI) => {
     try {
       return await productService.getProducts(params);
-    } catch (err: any) {
+    } catch (err) {
       return thunkAPI.rejectWithValue(err.message);
     }
   }
 );
 
-export const fetchFeaturedProducts = createAsyncThunk<Product[], number | undefined>(
+export const fetchFeaturedProducts = createAsyncThunk(
   'products/fetchFeatured',
   async (limit, thunkAPI) => {
     try {
       return await productService.getFeaturedProducts(limit);
-    } catch (err: any) {
+    } catch (err) {
       return thunkAPI.rejectWithValue(err.message);
     }
   }
 );
 
-export const fetchProductBySlug = createAsyncThunk<Product, string>(
+export const fetchProductBySlug = createAsyncThunk(
   'products/fetchBySlug',
   async (slug, thunkAPI) => {
     try {
       return await productService.getProductBySlug(slug);
-    } catch (err: any) {
+    } catch (err) {
       return thunkAPI.rejectWithValue(err.message);
     }
   }
 );
 
-export const fetchRelatedProducts = createAsyncThunk<Product[], string>(
+export const fetchRelatedProducts = createAsyncThunk(
   'products/fetchRelated',
   async (slug, thunkAPI) => {
     try {
       return await productService.getRelatedProducts(slug);
-    } catch (err: any) {
+    } catch (err) {
       return thunkAPI.rejectWithValue(err.message);
     }
   }
 );
 
-export const fetchCategories = createAsyncThunk<Category[]>(
+export const fetchCategories = createAsyncThunk(
   'products/fetchCategories',
   async (_, thunkAPI) => {
     try {
       return await productService.getCategories();
-    } catch (err: any) {
+    } catch (err) {
       return thunkAPI.rejectWithValue(err.message);
     }
   }
@@ -117,7 +94,7 @@ const productSlice = createSlice({
           limit: action.payload.limit,
         };
       })
-      .addCase(fetchProducts.rejected, (state, action) => { state.isLoading = false; state.error = action.payload as string; })
+      .addCase(fetchProducts.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
       // Featured
       .addCase(fetchFeaturedProducts.pending, (state) => { state.isFeaturedLoading = true; })
       .addCase(fetchFeaturedProducts.fulfilled, (state, action) => { state.isFeaturedLoading = false; state.featuredProducts = action.payload; })
@@ -125,7 +102,7 @@ const productSlice = createSlice({
       // Single product
       .addCase(fetchProductBySlug.pending, (state) => { state.isDetailLoading = true; state.error = null; state.product = null; })
       .addCase(fetchProductBySlug.fulfilled, (state, action) => { state.isDetailLoading = false; state.product = action.payload; })
-      .addCase(fetchProductBySlug.rejected, (state, action) => { state.isDetailLoading = false; state.error = action.payload as string; })
+      .addCase(fetchProductBySlug.rejected, (state, action) => { state.isDetailLoading = false; state.error = action.payload; })
       // Related
       .addCase(fetchRelatedProducts.fulfilled, (state, action) => { state.relatedProducts = action.payload; })
       // Categories

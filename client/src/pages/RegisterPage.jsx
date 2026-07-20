@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserPlus, ShoppingBag } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
-import { register, clearError } from '../features/auth/authSlice';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
+import { register, clearError } from '../features/auth/authSlice.js';
 
-const RegisterPage: React.FC = () => {
+const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +21,7 @@ const RegisterPage: React.FC = () => {
     return () => { dispatch(clearError()); };
   }, [userInfo, navigate, dispatch]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       setPasswordError('Passwords do not match');

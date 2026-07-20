@@ -1,40 +1,34 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import authService, { LoginCredentials, RegisterData, UserInfo } from '../../services/authService';
-
-interface AuthState {
-  userInfo: UserInfo | null;
-  isLoading: boolean;
-  error: string | null;
-}
+import authService from '../../services/authService.js';
 
 const storedUser = localStorage.getItem('userInfo');
-const initialState: AuthState = {
+const initialState = {
   userInfo: storedUser ? JSON.parse(storedUser) : null,
   isLoading: false,
   error: null,
 };
 
-export const login = createAsyncThunk<UserInfo, LoginCredentials>(
+export const login = createAsyncThunk(
   'auth/login',
   async (credentials, thunkAPI) => {
     try {
       const data = await authService.login(credentials);
       localStorage.setItem('userInfo', JSON.stringify(data));
       return data;
-    } catch (err: any) {
+    } catch (err) {
       return thunkAPI.rejectWithValue(err.message);
     }
   }
 );
 
-export const register = createAsyncThunk<UserInfo, RegisterData>(
+export const register = createAsyncThunk(
   'auth/register',
   async (userData, thunkAPI) => {
     try {
       const data = await authService.register(userData);
       localStorage.setItem('userInfo', JSON.stringify(data));
       return data;
-    } catch (err: any) {
+    } catch (err) {
       return thunkAPI.rejectWithValue(err.message);
     }
   }
@@ -44,7 +38,7 @@ export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
   try {
     await authService.logout();
     localStorage.removeItem('userInfo');
-  } catch (err: any) {
+  } catch (err) {
     return thunkAPI.rejectWithValue(err.message);
   }
 });
@@ -62,11 +56,11 @@ const authSlice = createSlice({
       // Login
       .addCase(login.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(login.fulfilled, (state, action) => { state.isLoading = false; state.userInfo = action.payload; })
-      .addCase(login.rejected, (state, action) => { state.isLoading = false; state.error = action.payload as string; })
+      .addCase(login.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
       // Register
       .addCase(register.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(register.fulfilled, (state, action) => { state.isLoading = false; state.userInfo = action.payload; })
-      .addCase(register.rejected, (state, action) => { state.isLoading = false; state.error = action.payload as string; })
+      .addCase(register.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
       // Logout
       .addCase(logout.fulfilled, (state) => { state.userInfo = null; state.error = null; });
   },

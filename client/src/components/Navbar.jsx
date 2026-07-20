@@ -1,18 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, User, LogOut, Menu, X } from 'lucide-react';
-import { useState } from 'react';
-import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
-import { logout } from '../features/auth/authSlice';
+import { ShoppingBag, Search, LogOut, Menu, X } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
+import { logout } from '../features/auth/authSlice.js';
 
-const Navbar: React.FC = () => {
+const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { userInfo } = useAppSelector((s) => s.auth);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/search?search=${encodeURIComponent(searchQuery.trim())}`);

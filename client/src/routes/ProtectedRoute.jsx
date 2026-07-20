@@ -1,8 +1,8 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAppSelector } from '../hooks/useRedux';
+import { useAppSelector } from '../hooks/useRedux.js';
 
-const ProtectedRoute: React.FC = () => {
+const ProtectedRoute = () => {
   const { userInfo } = useAppSelector((s) => s.auth);
   return userInfo ? <Outlet /> : <Navigate to="/login" replace />;
 };

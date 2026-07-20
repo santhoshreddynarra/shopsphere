@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, LogIn, ShoppingBag } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
-import { login, clearError } from '../features/auth/authSlice';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
+import { login, clearError } from '../features/auth/authSlice.js';
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +18,7 @@ const LoginPage: React.FC = () => {
     return () => { dispatch(clearError()); };
   }, [userInfo, navigate, dispatch]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(login({ email, password }));
   };

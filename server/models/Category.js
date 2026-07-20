@@ -30,7 +30,7 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-categorySchema.index({ slug: 1 });
+// slug index created automatically via unique:true in field definition
 categorySchema.index({ isActive: 1 });
 
 const Category = mongoose.model('Category', categorySchema);
