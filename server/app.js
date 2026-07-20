@@ -29,8 +29,12 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(helmet());
 app.use(morgan('dev'));
+const allowedOrigins = process.env.CLIENT_URL 
+  ? process.env.CLIENT_URL.split(',').map(url => url.trim())
+  : ['http://localhost:5173'];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://shopsphere.vercel.app' : 'http://localhost:5173',
+  origin: allowedOrigins,
   credentials: true,
 }));
 
