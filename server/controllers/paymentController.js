@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import asyncHandler from '../middleware/asyncHandler.js';
+import Order from '../models/Order.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -9,22 +10,40 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // @route   POST /api/payment/create-payment-intent
 // @access  Private
 const createPaymentIntent = asyncHandler(async (req, res) => {
-  const { amount } = req.body;
+  const { orderId } = req.body;
 
-  if (!amount || amount <= 0) {
+  if (!orderId) {
     res.status(400);
-    throw new Error('Invalid amount');
+    throw new Error('Order ID is required');
   }
 
-  // Stripe accepts amounts in cents/smallest currency unit.
-  // Assuming INR (rupees), amount should be multiplied by 100 to convert to paise.
-  const amountInPaise = Math.round(amount * 100);
+  const order = await Order.findById(orderId);
+
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+
+  if (order.user.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error('Not authorized to pay for this order');
+  }
+
+  if (order.isPaid) {
+    res.status(400);
+    throw new Error('Order is already paid');
+  }
+
+  const amountInPaise = Math.round(order.totalPrice * 100);
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: amountInPaise,
     currency: 'inr',
     automatic_payment_methods: {
       enabled: true,
+    },
+    metadata: {
+      orderId: order._id.toString(),
     },
   });
 
@@ -43,15 +62,55 @@ const stripeWebhook = asyncHandler(async (req, res) => {
   let event;
 
   try {
-    // req.body must be the raw buffer (from express.raw)
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
     console.error(`Webhook signature verification failed: ${err.message}`);
     res.status(400).send(`Webhook Error: ${err.message}`);
-    return; // Stop execution
+    return;
   }
 
-  // Event successfully verified
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      const orderId = paymentIntent.metadata?.orderId;
+      
+      if (orderId) {
+        const order = await Order.findById(orderId);
+        
+        if (order) {
+          // Check if already paid to prevent duplicate processing
+          if (!order.isPaid) {
+            // Verify amount
+            if (paymentIntent.amount === Math.round(order.totalPrice * 100)) {
+              order.isPaid = true;
+              order.paidAt = Date.now();
+              order.status = 'Confirmed';
+              order.paymentResult = {
+                id: paymentIntent.id,
+                status: paymentIntent.status,
+                email_address: paymentIntent.receipt_email || '',
+              };
+              await order.save();
+              console.log(`Order ${orderId} marked as paid from webhook`);
+            } else {
+              console.error(`Amount mismatch for order ${orderId}: Expected ${Math.round(order.totalPrice * 100)}, got ${paymentIntent.amount}`);
+            }
+          }
+        } else {
+          console.error(`Order ${orderId} not found for payment_intent.succeeded`);
+        }
+      }
+      break;
+      
+    case 'payment_intent.payment_failed':
+      console.error(`Payment failed: ${event.data.object.last_payment_error?.message}`);
+      break;
+      
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
   res.status(200).send('Webhook received and verified');
 });
 

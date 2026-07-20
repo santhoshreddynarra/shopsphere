@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
+import { useAppDispatch } from '../hooks/useRedux.js';
 import axiosInstance from '../services/axiosInstance.js';
 import { clearCart } from '../features/cart/cartSlice.js';
 
 // Ensure you replace this with your actual Stripe publishable key from your .env
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_placeholder');
 
-const CheckoutForm = ({ clientSecret, orderData }) => {
+const CheckoutForm = ({ clientSecret, orderId, totalPrice }) => {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -39,26 +39,9 @@ const CheckoutForm = ({ clientSecret, orderData }) => {
       setError(submitError.message);
       setIsProcessing(false);
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      try {
-        // Create the order in the backend
-        const orderResponse = await axiosInstance.post('/orders', {
-          ...orderData,
-          paymentMethod: 'Stripe',
-          paymentResult: {
-            id: paymentIntent.id,
-            status: paymentIntent.status,
-            email_address: paymentIntent.receipt_email,
-          },
-          isPaid: true,
-          paidAt: new Date(),
-        }, { withCredentials: true });
-
-        dispatch(clearCart());
-        navigate(`/order-success/${orderResponse.data._id}`);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Error creating order');
-        setIsProcessing(false);
-      }
+      // The backend webhook will mark the order as paid. We just navigate.
+      dispatch(clearCart());
+      navigate(`/order-success/${orderId}`);
     }
   };
 
@@ -71,7 +54,7 @@ const CheckoutForm = ({ clientSecret, orderData }) => {
         disabled={isProcessing || !stripe || !elements} 
         className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition disabled:opacity-50"
       >
-        {isProcessing ? 'Processing...' : `Pay ₹${orderData.totalPrice.toLocaleString('en-IN')}`}
+        {isProcessing ? 'Processing...' : `Pay ₹${totalPrice?.toLocaleString('en-IN')}`}
       </button>
     </form>
   );
@@ -79,63 +62,42 @@ const CheckoutForm = ({ clientSecret, orderData }) => {
 
 const PaymentPage = () => {
   const navigate = useNavigate();
-  const { cart } = useAppSelector((state) => state.cart);
-  const { addresses } = useAppSelector((state) => state.address);
+  const { id: orderId } = useParams();
   const [clientSecret, setClientSecret] = useState('');
+  const [order, setOrder] = useState(null);
   
-  // Get selected address from local storage, or fallback to default
-  const selectedAddressId = localStorage.getItem('selectedAddress');
-  const deliveryAddress = addresses.find(a => a._id === selectedAddressId) || addresses.find(a => a.isDefault);
-
   useEffect(() => {
-    if (!cart?.products?.length || !deliveryAddress) {
+    if (!orderId) {
       navigate('/checkout');
       return;
     }
 
-    const fetchPaymentIntent = async () => {
+    const fetchOrderAndPaymentIntent = async () => {
       try {
-        const res = await axiosInstance.post('/payment/create-payment-intent', {
-          amount: cart.totalAmount
+        // 1. Fetch order details to get total price
+        const orderRes = await axiosInstance.get(`/orders/${orderId}`, { withCredentials: true });
+        setOrder(orderRes.data);
+
+        // 2. Fetch payment intent using order ID
+        const paymentRes = await axiosInstance.post('/payment/create-payment-intent', {
+          orderId
         }, { withCredentials: true });
-        setClientSecret(res.data.clientSecret);
+        setClientSecret(paymentRes.data.clientSecret);
       } catch (error) {
-        console.error('Payment intent error', error);
+        console.error('Error in payment setup', error);
       }
     };
 
-    fetchPaymentIntent();
-  }, [cart, deliveryAddress, navigate]);
+    fetchOrderAndPaymentIntent();
+  }, [orderId, navigate]);
 
-  if (!clientSecret) {
+  if (!clientSecret || !order) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
       </div>
     );
   }
-
-  const orderData = {
-    orderItems: cart.products.map(item => ({
-      name: item.productId.name,
-      qty: item.quantity,
-      image: item.productId.images[0]?.url || item.productId.images[0],
-      price: item.productId.discountPrice > 0 ? item.productId.discountPrice : item.productId.price,
-      product: item.productId._id
-    })),
-    shippingAddress: {
-      fullName: deliveryAddress.fullName,
-      addressLine1: deliveryAddress.addressLine1,
-      city: deliveryAddress.city,
-      postalCode: deliveryAddress.postalCode,
-      country: deliveryAddress.country,
-      phone: deliveryAddress.phone,
-    },
-    itemsPrice: cart.totalAmount,
-    taxPrice: 0,
-    shippingPrice: 0,
-    totalPrice: cart.totalAmount,
-  };
 
   const appearance = { theme: 'stripe' };
   const options = { clientSecret, appearance };
@@ -145,7 +107,7 @@ const PaymentPage = () => {
       <h1 className="text-3xl font-bold text-slate-900 mb-8 text-center">Complete Payment</h1>
       {clientSecret && (
         <Elements options={options} stripe={stripePromise}>
-          <CheckoutForm clientSecret={clientSecret} orderData={orderData} />
+          <CheckoutForm clientSecret={clientSecret} orderId={orderId} totalPrice={order.totalPrice} />
         </Elements>
       )}
     </div>

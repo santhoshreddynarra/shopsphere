@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { fetchAddresses } from '../features/address/addressSlice.js';
 import { fetchCart } from '../features/cart/cartSlice.js';
+import axiosInstance from '../services/axiosInstance.js';
 import { MapPin, CreditCard, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const CheckoutPage = () => {
@@ -46,13 +47,39 @@ const CheckoutPage = () => {
     );
   }
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedAddress) {
       alert('Please select a delivery address');
       return;
     }
-    localStorage.setItem('selectedAddress', selectedAddress);
-    navigate('/payment');
+    
+    try {
+      const deliveryAddr = addresses.find(a => a._id === selectedAddress);
+      const orderData = {
+        orderItems: cart.products.map(item => ({
+          name: item.productId.name,
+          qty: item.quantity,
+          image: item.productId.images[0]?.url || item.productId.images[0],
+          price: item.productId.discountPrice > 0 ? item.productId.discountPrice : item.productId.price,
+          product: item.productId._id
+        })),
+        shippingAddress: {
+          fullName: deliveryAddr.fullName,
+          addressLine1: deliveryAddr.addressLine1,
+          city: deliveryAddr.city,
+          postalCode: deliveryAddr.postalCode,
+          country: deliveryAddr.country,
+          phone: deliveryAddr.phone,
+        },
+        paymentMethod: 'Stripe',
+      };
+
+      const { data } = await axiosInstance.post('/orders', orderData, { withCredentials: true });
+      navigate(`/payment/${data._id}`);
+    } catch (error) {
+      console.error('Failed to create order', error);
+      alert('Failed to create order. Please try again.');
+    }
   };
 
   return (
