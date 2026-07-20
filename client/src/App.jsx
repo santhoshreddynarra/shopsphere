@@ -5,6 +5,7 @@ import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import HomePage from './pages/HomePage.jsx';
+import ProductsPage from './pages/ProductsPage.jsx';
 import CartPage from './pages/CartPage.jsx';
 import WishlistPage from './pages/WishlistPage.jsx';
 import AddressPage from './pages/AddressPage.jsx';
@@ -15,6 +16,9 @@ import MyOrdersPage from './pages/MyOrdersPage.jsx';
 import OrderDetailsPage from './pages/OrderDetailsPage.jsx';
 import AdminLayout from './layouts/AdminLayout.jsx';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import AdminProducts from './pages/admin/AdminProducts.jsx';
+import AdminOrders from './pages/admin/AdminOrders.jsx';
+import AdminUsers from './pages/admin/AdminUsers.jsx';
 
 const App = () => {
   return (
@@ -27,6 +31,8 @@ const App = () => {
         {/* Public pages with layout */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/category/:categorySlug" element={<ProductsPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
         </Route>
@@ -45,6 +51,9 @@ const App = () => {
         {/* Admin Routes */}
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
         </Route>
       </Routes>
     </BrowserRouter>
