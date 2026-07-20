@@ -1,19 +1,19 @@
-import axios from 'axios';
+import axiosInstance from './axiosInstance.js';
 
-const API_URL = '/api/admin/';
+const API_URL = '/admin/';
 
 const getDashboardStats = async () => {
-  const response = await axios.get(API_URL + 'stats', { withCredentials: true });
+  const response = await axiosInstance.get(API_URL + 'stats', { withCredentials: true });
   return response.data;
 };
 
 const getUsers = async () => {
-  const response = await axios.get(API_URL + 'users', { withCredentials: true });
+  const response = await axiosInstance.get(API_URL + 'users', { withCredentials: true });
   return response.data;
 };
 
 const updateUserRole = async (id, isAdmin) => {
-  const response = await axios.put(API_URL + 'users/' + id + '/role', { isAdmin }, { withCredentials: true });
+  const response = await axiosInstance.put(API_URL + 'users/' + id + '/role', { isAdmin }, { withCredentials: true });
   return response.data;
 };
 

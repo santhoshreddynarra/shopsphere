@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
-import axios from 'axios';
+import axiosInstance from '../services/axiosInstance.js';
 import { clearCart } from '../features/cart/cartSlice.js';
 
 // Ensure you replace this with your actual Stripe publishable key from your .env
@@ -41,7 +41,7 @@ const CheckoutForm = ({ clientSecret, orderData }) => {
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
       try {
         // Create the order in the backend
-        const orderResponse = await axios.post('/api/orders', {
+        const orderResponse = await axiosInstance.post('/orders', {
           ...orderData,
           paymentMethod: 'Stripe',
           paymentResult: {
@@ -95,7 +95,7 @@ const PaymentPage = () => {
 
     const fetchPaymentIntent = async () => {
       try {
-        const res = await axios.post('/api/payment/create-payment-intent', {
+        const res = await axiosInstance.post('/payment/create-payment-intent', {
           amount: cart.totalAmount
         }, { withCredentials: true });
         setClientSecret(res.data.clientSecret);

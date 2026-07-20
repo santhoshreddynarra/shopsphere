@@ -1,19 +1,19 @@
-import axios from 'axios';
+import axiosInstance from './axiosInstance.js';
 
-const API_URL = '/api/wishlist/';
+const API_URL = '/wishlist/';
 
 const getWishlist = async () => {
-  const response = await axios.get(API_URL, { withCredentials: true });
+  const response = await axiosInstance.get(API_URL, { withCredentials: true });
   return response.data;
 };
 
 const addToWishlist = async (productId) => {
-  const response = await axios.post(API_URL + 'add', { productId }, { withCredentials: true });
+  const response = await axiosInstance.post(API_URL + 'add', { productId }, { withCredentials: true });
   return response.data;
 };
 
 const removeFromWishlist = async (productId) => {
-  const response = await axios.delete(`${API_URL}remove/${productId}`, { withCredentials: true });
+  const response = await axiosInstance.delete(`${API_URL}remove/${productId}`, { withCredentials: true });
   return response.data;
 };
 

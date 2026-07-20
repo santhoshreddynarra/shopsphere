@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import productService from '../../services/productService.js';
-import axios from 'axios';
+import axiosInstance from '../../services/axiosInstance.js';
 
 const initialState = {
   products: [],
@@ -19,7 +19,7 @@ const initialState = {
 
 export const fetchBestSellers = createAsyncThunk('products/fetchBestSellers', async (_, thunkAPI) => {
   try {
-    const res = await axios.get('/api/products?limit=4&sort=-numSales');
+    const res = await axiosInstance.get('/products?limit=4&sort=-numSales');
     return res.data.products;
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
