@@ -65,6 +65,7 @@ const PaymentPage = () => {
   const { id: orderId } = useParams();
   const [clientSecret, setClientSecret] = useState('');
   const [order, setOrder] = useState(null);
+  const [pageError, setPageError] = useState(null);
   
   useEffect(() => {
     if (!orderId) {
@@ -74,6 +75,7 @@ const PaymentPage = () => {
 
     const fetchOrderAndPaymentIntent = async () => {
       try {
+        setPageError(null);
         // 1. Fetch order details to get total price
         const orderRes = await axiosInstance.get(`/orders/${orderId}`, { withCredentials: true });
         setOrder(orderRes.data);
@@ -85,11 +87,32 @@ const PaymentPage = () => {
         setClientSecret(paymentRes.data.clientSecret);
       } catch (error) {
         console.error('Error in payment setup', error);
+        setPageError(error.response?.data?.message || error.message || 'Failed to initialize payment.');
       }
     };
 
     fetchOrderAndPaymentIntent();
   }, [orderId, navigate]);
+
+  if (pageError) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Payment Setup Failed</h2>
+        <p className="text-slate-500 mb-6">{pageError}</p>
+        <button 
+          onClick={() => navigate('/orders')} 
+          className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition"
+        >
+          View My Orders
+        </button>
+      </div>
+    );
+  }
 
   if (!clientSecret || !order) {
     return (
