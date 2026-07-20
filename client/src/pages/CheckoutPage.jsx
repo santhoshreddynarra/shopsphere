@@ -194,16 +194,27 @@ const CheckoutPage = () => {
 
             <div className="space-y-3 pt-4 border-t border-slate-100 mb-6">
               <div className="flex justify-between text-sm text-slate-600">
-                <span>Items ({cart?.products?.reduce((a, c) => a + c.quantity, 0)})</span>
-                <span className="font-medium">₹{cart?.totalAmount?.toLocaleString('en-IN')}</span>
+                <span>Subtotal ({cart?.products?.reduce((a, c) => a + c.quantity, 0)} items)</span>
+                <span className="font-medium">₹{cart?.itemsPrice?.toLocaleString('en-IN') || 0}</span>
               </div>
+              
+              {cart?.discount > 0 && (
+                <div className="flex justify-between text-sm text-emerald-600">
+                  <span>Discount</span>
+                  <span className="font-medium">-₹{cart.discount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              
               <div className="flex justify-between text-sm text-slate-600">
                 <span>Shipping</span>
-                <span className="font-medium text-emerald-600">Free</span>
+                <span className={cart?.shipping === 0 ? "font-medium text-emerald-600" : "font-medium"}>
+                  {cart?.shipping === 0 ? 'Free' : `₹${cart?.shipping}`}
+                </span>
               </div>
+              
               <div className="flex justify-between text-sm text-slate-600">
-                <span>Taxes</span>
-                <span className="font-medium">₹0</span>
+                <span>Taxes (18%)</span>
+                <span className="font-medium">₹{cart?.tax?.toLocaleString('en-IN') || 0}</span>
               </div>
             </div>
             
@@ -211,7 +222,7 @@ const CheckoutPage = () => {
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-slate-900">Order Total</span>
                 <span className="text-2xl font-bold text-indigo-600">
-                  ₹{cart?.totalAmount?.toLocaleString('en-IN')}
+                  ₹{cart?.totalAmount?.toLocaleString('en-IN') || 0}
                 </span>
               </div>
             </div>

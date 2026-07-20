@@ -135,16 +135,27 @@ const CartPage = () => {
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-slate-600">
-                  <span>Subtotal ({validProducts.length} items)</span>
-                  <span className="font-medium">₹{cart?.totalAmount?.toLocaleString('en-IN') || 0}</span>
+                  <span>Subtotal ({validProducts.reduce((acc, item) => acc + item.quantity, 0)} items)</span>
+                  <span className="font-medium">₹{cart?.itemsPrice?.toLocaleString('en-IN') || 0}</span>
                 </div>
+                
+                {cart?.discount > 0 && (
+                  <div className="flex justify-between text-emerald-600">
+                    <span>Discount</span>
+                    <span className="font-medium">-₹{cart.discount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between text-slate-600">
-                  <span>Shipping estimate</span>
-                  <span className="font-medium text-emerald-600">Free</span>
+                  <span>Shipping</span>
+                  <span className={cart?.shipping === 0 ? "font-medium text-emerald-600" : "font-medium"}>
+                    {cart?.shipping === 0 ? 'Free' : `₹${cart?.shipping}`}
+                  </span>
                 </div>
+                
                 <div className="flex justify-between text-slate-600">
-                  <span>Tax estimate</span>
-                  <span className="font-medium">Calculated at checkout</span>
+                  <span>Tax (18%)</span>
+                  <span className="font-medium">₹{cart?.tax?.toLocaleString('en-IN') || 0}</span>
                 </div>
               </div>
               
@@ -152,14 +163,21 @@ const CartPage = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-slate-900">Order Total</span>
                   <span className="text-2xl font-bold text-indigo-600">
-                    ₹{cart?.totalAmount?.toLocaleString('en-IN')}
+                    ₹{cart?.totalAmount?.toLocaleString('en-IN') || 0}
                   </span>
                 </div>
               </div>
 
               <Link
-                to="/checkout"
-                className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200"
+                to={validProducts.length > 0 ? "/checkout" : "#"}
+                className={`w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold transition shadow-lg ${
+                  validProducts.length > 0 
+                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200' 
+                    : 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
+                }`}
+                onClick={(e) => {
+                  if (validProducts.length === 0) e.preventDefault();
+                }}
               >
                 Proceed to Checkout
                 <ArrowRight className="w-5 h-5" />
