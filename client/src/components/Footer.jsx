@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Github, Twitter, Instagram } from 'lucide-react';
+import { ShoppingBag, Globe, Mail, MessageCircle } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -21,9 +21,9 @@ const Footer = () => {
               Your premium e-commerce destination. Discover curated products across electronics, fashion, beauty, and more.
             </p>
             <div className="flex gap-3 mt-4">
-              <a href="#" className="text-slate-500 hover:text-indigo-400 transition"><Github className="w-5 h-5" /></a>
-              <a href="#" className="text-slate-500 hover:text-indigo-400 transition"><Twitter className="w-5 h-5" /></a>
-              <a href="#" className="text-slate-500 hover:text-indigo-400 transition"><Instagram className="w-5 h-5" /></a>
+              <a href="#" className="text-slate-500 hover:text-indigo-400 transition"><Globe className="w-5 h-5" /></a>
+              <a href="#" className="text-slate-500 hover:text-indigo-400 transition"><MessageCircle className="w-5 h-5" /></a>
+              <a href="#" className="text-slate-500 hover:text-indigo-400 transition"><Mail className="w-5 h-5" /></a>
             </div>
           </div>
 
