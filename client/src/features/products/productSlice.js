@@ -1,18 +1,30 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import productService from '../../services/productService.js';
+import axios from 'axios';
 
 const initialState = {
   products: [],
   featuredProducts: [],
   relatedProducts: [],
+  bestSellers: [],
   product: null,
   categories: [],
   pagination: { page: 1, pages: 1, total: 0, limit: 12 },
   isLoading: false,
   isFeaturedLoading: false,
   isDetailLoading: false,
+  isBestSellersLoading: false,
   error: null,
 };
+
+export const fetchBestSellers = createAsyncThunk('products/fetchBestSellers', async (_, thunkAPI) => {
+  try {
+    const res = await axios.get('/api/products?limit=4&sort=-numSales');
+    return res.data.products;
+  } catch (error) {
+    return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+  }
+});
 
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
@@ -105,6 +117,16 @@ const productSlice = createSlice({
       .addCase(fetchProductBySlug.rejected, (state, action) => { state.isDetailLoading = false; state.error = action.payload; })
       // Related
       .addCase(fetchRelatedProducts.fulfilled, (state, action) => { state.relatedProducts = action.payload; })
+      // Best Sellers
+      .addCase(fetchBestSellers.pending, (state) => { state.isBestSellersLoading = true; })
+      .addCase(fetchBestSellers.fulfilled, (state, action) => {
+        state.isBestSellersLoading = false;
+        state.bestSellers = action.payload;
+      })
+      .addCase(fetchBestSellers.rejected, (state, action) => {
+        state.isBestSellersLoading = false;
+        state.error = action.payload;
+      })
       // Categories
       .addCase(fetchCategories.fulfilled, (state, action) => { state.categories = action.payload; });
   },

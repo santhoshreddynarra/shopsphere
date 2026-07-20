@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShoppingBag, ShieldCheck, Truck, Clock } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
-import { fetchFeaturedProducts, fetchProducts, fetchCategories } from '../features/products/productSlice.js';
+import { fetchFeaturedProducts, fetchProducts, fetchCategories, fetchBestSellers } from '../features/products/productSlice.js';
 import ProductGrid from '../components/ProductGrid.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 
@@ -11,14 +11,17 @@ const HomePage = () => {
   const { 
     featuredProducts, 
     products: newArrivals,
+    bestSellers,
     categories,
     isFeaturedLoading,
+    isBestSellersLoading,
     isLoading 
   } = useAppSelector((state) => state.products);
 
   useEffect(() => {
     dispatch(fetchFeaturedProducts(8));
     dispatch(fetchProducts({ limit: 4, sort: '-createdAt' }));
+    dispatch(fetchBestSellers());
     dispatch(fetchCategories());
   }, [dispatch]);
 
@@ -139,13 +142,33 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Best Sellers */}
+      <section className="bg-slate-50 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Best Sellers</h2>
+              <p className="text-slate-500 mt-2">Our most popular products this month.</p>
+            </div>
+            <Link to="/products?sort=-numSales" className="hidden md:flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+              View All <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <ProductGrid isLoading={isBestSellersLoading} skeletonCount={4}>
+            {bestSellers.map(product => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </ProductGrid>
+        </div>
+      </section>
+
       {/* Promotional Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="bg-slate-900 rounded-3xl overflow-hidden relative shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 mix-blend-overlay" />
           <div className="relative px-8 py-16 md:py-20 md:px-20 lg:w-2/3">
             <span className="inline-block py-1 px-3 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 text-xs font-bold uppercase tracking-widest mb-6">
-              Limited Time Offer
+              Trending Deals
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
               Get Up to 40% Off on Electronics
@@ -154,7 +177,7 @@ const HomePage = () => {
               Upgrade your tech setup today. Discover the latest smartphones, laptops, and accessories at unbeatable prices.
             </p>
             <Link
-              to="/products"
+              to="/products?category=electronics"
               className="inline-flex bg-white hover:bg-slate-50 text-slate-900 font-bold px-8 py-4 rounded-full transition-all hover:scale-105"
             >
               Shop Electronics
@@ -172,22 +195,45 @@ const HomePage = () => {
       </section>
 
       {/* New Arrivals */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">New Arrivals</h2>
-            <p className="text-slate-500 mt-2">The latest additions to our collection.</p>
+      <section className="bg-white py-20 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <h2 className="text-3xl font-bold text-slate-900 tracking-tight">New Arrivals</h2>
+              <p className="text-slate-500 mt-2">The latest additions to our collection.</p>
+            </div>
+            <Link to="/products?sort=-createdAt" className="hidden md:flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+              View All <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-          <Link to="/products?sort=-createdAt" className="hidden md:flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
-            View All <ArrowRight className="w-4 h-4" />
-          </Link>
+          
+          <ProductGrid isLoading={isLoading} skeletonCount={4}>
+            {newArrivals.slice(0, 4).map(product => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </ProductGrid>
         </div>
-        
-        <ProductGrid isLoading={isLoading} skeletonCount={4}>
-          {newArrivals.slice(0, 4).map(product => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </ProductGrid>
+      </section>
+
+      {/* Newsletter Signup */}
+      <section className="bg-indigo-600 py-20 mt-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">Join our Newsletter</h2>
+          <p className="text-indigo-100 mb-8 max-w-2xl mx-auto">
+            Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.
+          </p>
+          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
+            <input 
+              type="email" 
+              placeholder="Enter your email" 
+              required
+              className="flex-1 px-6 py-4 rounded-full border-none focus:ring-4 focus:ring-indigo-300/50 outline-none"
+            />
+            <button type="submit" className="bg-slate-900 text-white font-bold px-8 py-4 rounded-full hover:bg-slate-800 transition">
+              Subscribe
+            </button>
+          </form>
+        </div>
       </section>
     </div>
   );

@@ -64,6 +64,7 @@ const ProductCard = ({ product }) => {
           {product.isFeatured && <Badge label="Featured" variant="featured" />}
           {hasDiscount && <Badge label={`-${discountPercent}%`} variant="sale" />}
           {product.stock === 0 && <Badge label="Out of Stock" variant="outofstock" />}
+          {product.stock > 0 && product.stock <= 5 && <Badge label={`Only ${product.stock} Left!`} variant="warning" />}
         </div>
       </div>
 
