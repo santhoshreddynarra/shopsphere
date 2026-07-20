@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
+import cartRoutes from './routes/cartRoutes.js';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use(cookieParser());
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/cart', cartRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
