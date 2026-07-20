@@ -15,6 +15,7 @@ import addressRoutes from './routes/addressRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import { stripeWebhook } from './controllers/paymentController.js';
 
 const app = express();
 
@@ -37,6 +38,9 @@ app.use(cors({
   origin: allowedOrigins,
   credentials: true,
 }));
+
+// Stripe Webhook must be parsed as raw body before express.json()
+app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
 // Basic Middleware
 app.use(express.json());

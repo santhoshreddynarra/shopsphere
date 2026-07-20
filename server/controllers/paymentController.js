@@ -33,4 +33,11 @@ const createPaymentIntent = asyncHandler(async (req, res) => {
   });
 });
 
-export { createPaymentIntent };
+// @desc    Stripe Webhook
+// @route   POST /api/payment/webhook
+// @access  Public
+const stripeWebhook = asyncHandler(async (req, res) => {
+  res.status(200).send('Webhook received');
+});
+
+export { createPaymentIntent, stripeWebhook };
