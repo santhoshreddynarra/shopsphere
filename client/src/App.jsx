@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout.jsx';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
+import HomePage from './pages/HomePage.jsx';
 
 const App = () => {
   return (
@@ -15,7 +16,7 @@ const App = () => {
 
         {/* Public pages with layout */}
         <Route element={<MainLayout><div /></MainLayout>}>
-          <Route path="/" element={<div className="max-w-7xl mx-auto py-6 px-4 text-slate-200">Welcome to ShopSphere AI</div>} />
+          <Route path="/" element={<HomePage />} />
         </Route>
 
         {/* Protected pages */}
