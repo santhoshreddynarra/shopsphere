@@ -5,6 +5,7 @@ import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import HomePage from './pages/HomePage.jsx';
+import CartPage from './pages/CartPage.jsx';
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
         {/* Public pages with layout */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/cart" element={<CartPage />} />
         </Route>
 
         {/* Protected pages */}

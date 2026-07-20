@@ -1,6 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
+import { addToCart } from '../features/cart/cartSlice.js';
 import StarRating from './StarRating.jsx';
 import Badge from './Badge.jsx';
 
@@ -11,14 +13,20 @@ const ProductCard = ({ product }) => {
     : 0;
   const displayPrice = hasDiscount ? product.discountPrice : product.price;
 
+  const dispatch = useAppDispatch();
+  const { userInfo } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
+
   const handleWishlist = (e) => {
     e.preventDefault();
+    if (!userInfo) return navigate('/login');
     // Add wishlist logic here later
   };
 
   const handleAddToCart = (e) => {
     e.preventDefault();
-    // Add cart logic here later
+    if (!userInfo) return navigate('/login');
+    dispatch(addToCart({ productId: product._id, quantity: 1 }));
   };
 
   return (

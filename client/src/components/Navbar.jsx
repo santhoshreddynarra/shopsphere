@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Search, LogOut, Menu, X, ShoppingCart, Heart, User } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { logout } from '../features/auth/authSlice.js';
+import { fetchCart } from '../features/cart/cartSlice.js';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,6 +11,13 @@ const Navbar = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { userInfo } = useAppSelector((s) => s.auth);
+  const { cart } = useAppSelector((s) => s.cart);
+
+  useEffect(() => {
+    if (userInfo) {
+      dispatch(fetchCart());
+    }
+  }, [dispatch, userInfo]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -70,7 +78,11 @@ const Navbar = () => {
               </Link>
               <Link to="/cart" className="text-slate-500 hover:text-indigo-600 transition-colors relative">
                 <ShoppingCart className="w-5 h-5" />
-                <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+                {cart?.products?.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {cart.products.reduce((acc, item) => acc + item.quantity, 0)}
+                  </span>
+                )}
               </Link>
             </div>
 
@@ -116,7 +128,11 @@ const Navbar = () => {
           <div className="flex items-center gap-4 md:hidden">
             <Link to="/cart" className="text-slate-500 relative">
               <ShoppingCart className="w-5 h-5" />
-              <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+              {cart?.products?.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  {cart.products.reduce((acc, item) => acc + item.quantity, 0)}
+                </span>
+              )}
             </Link>
             <button
               className="text-slate-600 hover:text-indigo-600 transition"
