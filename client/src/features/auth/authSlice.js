@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authService from '../../services/authService.js';
+import cartService from '../../services/cartService.js';
+import wishlistService from '../../services/wishlistService.js';
+import { fetchCart } from '../cart/cartSlice.js';
+import { fetchWishlist } from '../wishlist/wishlistSlice.js';
 
 const storedUser = localStorage.getItem('userInfo');
 const initialState = {
@@ -8,12 +12,53 @@ const initialState = {
   error: null,
 };
 
+const mergeGuestData = async (thunkAPI) => {
+  try {
+    const localCart = JSON.parse(localStorage.getItem('cart'));
+    if (localCart && localCart.products && localCart.products.length > 0) {
+      for (const item of localCart.products) {
+        await cartService.addToCart({ productId: item.productId._id || item.productId, quantity: item.quantity });
+      }
+      localStorage.removeItem('cart');
+    }
+
+    const localWishlist = JSON.parse(localStorage.getItem('wishlist'));
+    if (localWishlist && localWishlist.products && localWishlist.products.length > 0) {
+      for (const item of localWishlist.products) {
+        await wishlistService.addToWishlist(item.productId._id || item.productId);
+      }
+      localStorage.removeItem('wishlist');
+    }
+    
+    // Fetch updated data to sync Redux
+    thunkAPI.dispatch(fetchCart());
+    thunkAPI.dispatch(fetchWishlist());
+  } catch (error) {
+    console.error('Failed to merge guest data', error);
+  }
+};
+
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials, thunkAPI) => {
     try {
       const data = await authService.login(credentials);
       localStorage.setItem('userInfo', JSON.stringify(data));
+      await mergeGuestData(thunkAPI);
+      return data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.message);
+    }
+  }
+);
+
+export const register = createAsyncThunk(
+  'auth/register',
+  async (userData, thunkAPI) => {
+    try {
+      const data = await authService.register(userData);
+      localStorage.setItem('userInfo', JSON.stringify(data));
+      await mergeGuestData(thunkAPI);
       return data;
     } catch (err) {
       return thunkAPI.rejectWithValue(err.message);

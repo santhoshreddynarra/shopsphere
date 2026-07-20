@@ -75,13 +75,11 @@ const ProductDetailsPage = () => {
   const inWishlist = wishlist?.products?.some(p => p.productId === product._id || p.productId?._id === product._id);
 
   const handleAddToCart = () => {
-    if (!userInfo) return navigate('/login');
-    dispatch(addToCart({ productId: product._id, quantity }));
+    dispatch(addToCart({ product, quantity }));
   };
 
   const handleWishlist = () => {
-    if (!userInfo) return navigate('/login');
-    dispatch(addToWishlist(product._id));
+    dispatch(addToWishlist({ product }));
   };
 
   return (

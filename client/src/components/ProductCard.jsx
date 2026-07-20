@@ -23,14 +23,12 @@ const ProductCard = ({ product }) => {
 
   const handleWishlist = (e) => {
     e.preventDefault();
-    if (!userInfo) return navigate('/login');
-    dispatch(addToWishlist(product._id));
+    dispatch(addToWishlist({ product })); // passing the whole product for guest mode
   };
 
   const handleAddToCart = (e) => {
     e.preventDefault();
-    if (!userInfo) return navigate('/login');
-    dispatch(addToCart({ productId: product._id, quantity: 1 }));
+    dispatch(addToCart({ product, quantity: 1 })); // passing whole product for guest mode
   };
 
   return (

@@ -11,12 +11,8 @@ const CartPage = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (userInfo) {
-      dispatch(fetchCart());
-    } else {
-      navigate('/login');
-    }
-  }, [dispatch, userInfo, navigate]);
+    dispatch(fetchCart());
+  }, [dispatch]);
 
   const handleUpdateQuantity = (productId, currentQty, newQty) => {
     if (newQty > 0) {

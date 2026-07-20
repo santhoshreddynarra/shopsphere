@@ -12,19 +12,15 @@ const WishlistPage = () => {
   const { userInfo } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (userInfo) {
-      dispatch(fetchWishlist());
-    } else {
-      navigate('/login');
-    }
-  }, [dispatch, userInfo, navigate]);
+    dispatch(fetchWishlist());
+  }, [dispatch, userInfo]);
 
   const handleRemove = (productId) => {
     dispatch(removeFromWishlist(productId));
   };
 
-  const handleMoveToCart = (productId) => {
-    dispatch(moveToCart(productId));
+  const handleMoveToCart = (product) => {
+    dispatch(moveToCart({ product }));
   };
 
   if (isLoading && (!wishlist?.products || wishlist.products.length === 0)) {
@@ -108,7 +104,7 @@ const WishlistPage = () => {
                     )}
                   </div>
                   <button 
-                    onClick={() => handleMoveToCart(item.productId._id)}
+                    onClick={() => handleMoveToCart(item.productId)}
                     disabled={isLoading}
                     className="w-full flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-50"
                   >

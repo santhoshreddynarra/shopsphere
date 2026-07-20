@@ -9,15 +9,67 @@ const initialState = {
 
 export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, thunkAPI) => {
   try {
+    const { auth } = thunkAPI.getState();
+    if (!auth.userInfo) {
+      const localCart = JSON.parse(localStorage.getItem('cart') || '{"products":[], "totalAmount":0, "itemsPrice":0, "tax":0, "shipping":0, "discount":0, "subtotal":0}');
+      return localCart;
+    }
     return await cartService.getCart();
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
   }
 });
 
-export const addToCart = createAsyncThunk('cart/addToCart', async (cartData, thunkAPI) => {
+const calculateGuestCartTotals = (products) => {
+  let itemsPrice = 0;
+  let discountAmount = 0;
+  
+  products.forEach(item => {
+    const product = item.productId;
+    const currentPrice = product.discountPrice > 0 ? product.discountPrice : product.price;
+    itemsPrice += product.price * item.quantity;
+    if (product.discountPrice > 0) {
+      discountAmount += (product.price - product.discountPrice) * item.quantity;
+    }
+  });
+  
+  const subtotal = itemsPrice - discountAmount;
+  const tax = Math.round(subtotal * 0.18);
+  const shipping = subtotal > 999 || subtotal === 0 ? 0 : 99;
+  const totalAmount = subtotal + tax + shipping;
+
+  return { products, itemsPrice, discount: discountAmount, subtotal, tax, shipping, totalAmount };
+};
+
+export const addToCart = createAsyncThunk('cart/addToCart', async (payload, thunkAPI) => {
   try {
-    await cartService.addToCart(cartData);
+    const { auth } = thunkAPI.getState();
+    // Payload might be { product, quantity } for guest, but { productId, quantity } for logged in.
+    // Ensure we handle both.
+    const productId = payload.productId || payload.product._id;
+    const quantity = payload.quantity;
+
+    if (!auth.userInfo) {
+      if (!payload.product) throw new Error('Product details missing for guest cart');
+      
+      const localCart = JSON.parse(localStorage.getItem('cart') || '{"products":[]}');
+      const existingItemIndex = localCart.products.findIndex(p => p.productId._id === productId);
+      
+      if (existingItemIndex >= 0) {
+        localCart.products[existingItemIndex].quantity += quantity;
+      } else {
+        localCart.products.push({
+          productId: payload.product,
+          quantity
+        });
+      }
+      
+      const updatedCart = calculateGuestCartTotals(localCart.products);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      return updatedCart;
+    }
+
+    await cartService.addToCart({ productId, quantity });
     return await cartService.getCart(); // Fetch full populated cart
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
@@ -26,6 +78,20 @@ export const addToCart = createAsyncThunk('cart/addToCart', async (cartData, thu
 
 export const updateQuantity = createAsyncThunk('cart/updateQuantity', async ({ productId, quantity }, thunkAPI) => {
   try {
+    const { auth } = thunkAPI.getState();
+    if (!auth.userInfo) {
+      const localCart = JSON.parse(localStorage.getItem('cart') || '{"products":[]}');
+      const existingItemIndex = localCart.products.findIndex(p => p.productId._id === productId);
+      
+      if (existingItemIndex >= 0) {
+        localCart.products[existingItemIndex].quantity = quantity;
+      }
+      
+      const updatedCart = calculateGuestCartTotals(localCart.products);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      return updatedCart;
+    }
+
     await cartService.updateQuantity(productId, quantity);
     return await cartService.getCart(); // Fetch full populated cart
   } catch (error) {
@@ -35,6 +101,16 @@ export const updateQuantity = createAsyncThunk('cart/updateQuantity', async ({ p
 
 export const removeProduct = createAsyncThunk('cart/removeProduct', async (productId, thunkAPI) => {
   try {
+    const { auth } = thunkAPI.getState();
+    if (!auth.userInfo) {
+      const localCart = JSON.parse(localStorage.getItem('cart') || '{"products":[]}');
+      localCart.products = localCart.products.filter(p => p.productId._id !== productId);
+      
+      const updatedCart = calculateGuestCartTotals(localCart.products);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      return updatedCart;
+    }
+
     await cartService.removeProduct(productId);
     return await cartService.getCart(); // Fetch full populated cart
   } catch (error) {
@@ -44,6 +120,12 @@ export const removeProduct = createAsyncThunk('cart/removeProduct', async (produ
 
 export const clearCart = createAsyncThunk('cart/clearCart', async (_, thunkAPI) => {
   try {
+    const { auth } = thunkAPI.getState();
+    if (!auth.userInfo) {
+      localStorage.removeItem('cart');
+      return { products: [], totalAmount: 0 };
+    }
+
     await cartService.clearCart();
     return { products: [], totalAmount: 0 };
   } catch (error) {

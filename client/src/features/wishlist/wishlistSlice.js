@@ -10,14 +10,34 @@ const initialState = {
 
 export const fetchWishlist = createAsyncThunk('wishlist/fetchWishlist', async (_, thunkAPI) => {
   try {
+    const { auth } = thunkAPI.getState();
+    if (!auth.userInfo) {
+      const localWishlist = JSON.parse(localStorage.getItem('wishlist') || '{"products":[]}');
+      return localWishlist;
+    }
     return await wishlistService.getWishlist();
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
   }
 });
 
-export const addToWishlist = createAsyncThunk('wishlist/addToWishlist', async (productId, thunkAPI) => {
+export const addToWishlist = createAsyncThunk('wishlist/addToWishlist', async (payload, thunkAPI) => {
   try {
+    const { auth } = thunkAPI.getState();
+    const productId = payload.productId || payload.product._id;
+
+    if (!auth.userInfo) {
+      if (!payload.product) throw new Error('Product details missing for guest wishlist');
+      const localWishlist = JSON.parse(localStorage.getItem('wishlist') || '{"products":[]}');
+      
+      const exists = localWishlist.products.some(p => p.productId._id === productId);
+      if (!exists) {
+        localWishlist.products.push({ productId: payload.product });
+        localStorage.setItem('wishlist', JSON.stringify(localWishlist));
+      }
+      return localWishlist;
+    }
+
     await wishlistService.addToWishlist(productId);
     return await wishlistService.getWishlist();
   } catch (error) {
@@ -27,6 +47,14 @@ export const addToWishlist = createAsyncThunk('wishlist/addToWishlist', async (p
 
 export const removeFromWishlist = createAsyncThunk('wishlist/removeFromWishlist', async (productId, thunkAPI) => {
   try {
+    const { auth } = thunkAPI.getState();
+    if (!auth.userInfo) {
+      const localWishlist = JSON.parse(localStorage.getItem('wishlist') || '{"products":[]}');
+      localWishlist.products = localWishlist.products.filter(p => p.productId._id !== productId);
+      localStorage.setItem('wishlist', JSON.stringify(localWishlist));
+      return localWishlist;
+    }
+
     await wishlistService.removeFromWishlist(productId);
     return await wishlistService.getWishlist();
   } catch (error) {
@@ -34,8 +62,19 @@ export const removeFromWishlist = createAsyncThunk('wishlist/removeFromWishlist'
   }
 });
 
-export const moveToCart = createAsyncThunk('wishlist/moveToCart', async (productId, thunkAPI) => {
+export const moveToCart = createAsyncThunk('wishlist/moveToCart', async (payload, thunkAPI) => {
   try {
+    const { auth } = thunkAPI.getState();
+    const productId = payload.productId || payload.product?._id;
+
+    if (!auth.userInfo) {
+      // Guest mode: dispatch addToCart with full product, then remove from guest wishlist
+      await thunkAPI.dispatch(addToCart({ product: payload.product, quantity: 1 })).unwrap();
+      await thunkAPI.dispatch(removeFromWishlist(productId)).unwrap();
+      return JSON.parse(localStorage.getItem('wishlist') || '{"products":[]}');
+    }
+
+    // Pass only productId to addToCart for logged-in user, but payload might be full product or just id
     await thunkAPI.dispatch(addToCart({ productId, quantity: 1 })).unwrap();
     await wishlistService.removeFromWishlist(productId);
     return await wishlistService.getWishlist();
