@@ -3,6 +3,7 @@ import authReducer from '../features/auth/authSlice.js';
 import productReducer from '../features/products/productSlice.js';
 import cartReducer from '../features/cart/cartSlice.js';
 import wishlistReducer from '../features/wishlist/wishlistSlice.js';
+import addressReducer from '../features/address/addressSlice.js';
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export const store = configureStore({
     products: productReducer,
     cart: cartReducer,
     wishlist: wishlistReducer,
+    address: addressReducer,
   },
 });

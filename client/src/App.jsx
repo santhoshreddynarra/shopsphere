@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import CartPage from './pages/CartPage.jsx';
 import WishlistPage from './pages/WishlistPage.jsx';
+import AddressPage from './pages/AddressPage.jsx';
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
         {/* Protected pages */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<div className="max-w-7xl mx-auto py-6 px-4 text-slate-200">Profile</div>} />
+          <Route path="/addresses" element={<AddressPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

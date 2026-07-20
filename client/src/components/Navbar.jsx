@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Search, LogOut, Menu, X, ShoppingCart, Heart, User } from 'lucide-react';
+import { ShoppingBag, Search, LogOut, Menu, X, ShoppingCart, Heart, User, MapPin } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { logout } from '../features/auth/authSlice.js';
 import { fetchCart } from '../features/cart/cartSlice.js';
@@ -106,6 +106,9 @@ const Navbar = () => {
                   <Link to="/profile" className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2">
                     <User className="w-4 h-4" /> Profile
                   </Link>
+                  <Link to="/addresses" className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2">
+                    <MapPin className="w-4 h-4" /> Addresses
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 text-left w-full"
@@ -191,6 +194,13 @@ const Navbar = () => {
                   className="text-slate-600 font-medium px-2 py-2 hover:bg-slate-50 rounded-lg flex items-center gap-2"
                 >
                   <User className="w-4 h-4" /> Profile ({userInfo.name})
+                </Link>
+                <Link
+                  to="/addresses"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-slate-600 font-medium px-2 py-2 hover:bg-slate-50 rounded-lg flex items-center gap-2"
+                >
+                  <MapPin className="w-4 h-4" /> Addresses
                 </Link>
                 <button
                   onClick={() => { handleLogout(); setIsMenuOpen(false); }}
