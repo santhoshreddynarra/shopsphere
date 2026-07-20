@@ -1,6 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Workaround for Node.js failing to resolve SRV/A records in some Windows environments
+import dns from 'dns';
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 import mongoose from 'mongoose';
 import Category from '../models/Category.js';
 import Product from '../models/Product.js';
