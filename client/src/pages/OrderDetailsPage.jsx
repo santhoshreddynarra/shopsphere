@@ -96,9 +96,9 @@ const OrderDetailsPage = () => {
               Cancel Order
             </button>
           )}
-          <button className="px-4 py-2 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-100 transition flex items-center gap-2">
+          <a href={`/api/orders/${order._id}/invoice`} target="_blank" rel="noreferrer" className="px-4 py-2 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-100 transition flex items-center gap-2">
             <Download className="w-4 h-4" /> Invoice
-          </button>
+          </a>
         </div>
       </div>
 
