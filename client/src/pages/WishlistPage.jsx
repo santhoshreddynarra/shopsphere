@@ -27,13 +27,15 @@ const WishlistPage = () => {
     dispatch(moveToCart(productId));
   };
 
-  if (isLoading && wishlist?.products?.length === 0) {
+  if (isLoading && (!wishlist?.products || wishlist.products.length === 0)) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
       </div>
     );
   }
+
+  const validProducts = (wishlist?.products || []).filter(item => item?.productId);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -42,7 +44,7 @@ const WishlistPage = () => {
         My Wishlist
       </h1>
 
-      {wishlist?.products?.length === 0 ? (
+      {validProducts.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
           <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <Heart className="w-10 h-10 text-indigo-600" />
@@ -61,7 +63,7 @@ const WishlistPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {wishlist?.products?.map((item) => (
+          {validProducts.map((item) => (
             <div key={item.productId._id} className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200 flex flex-col relative">
               
               <button 

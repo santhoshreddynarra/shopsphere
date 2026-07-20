@@ -28,7 +28,7 @@ const CartPage = () => {
     dispatch(removeProduct(productId));
   };
 
-  if (isLoading && cart?.products?.length === 0) {
+  if (isLoading && (!cart?.products || cart.products.length === 0)) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -36,11 +36,13 @@ const CartPage = () => {
     );
   }
 
+  const validProducts = (cart?.products || []).filter(item => item?.productId);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-slate-900 mb-8">Shopping Cart</h1>
 
-      {cart?.products?.length === 0 ? (
+      {validProducts.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
           <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <ShoppingBag className="w-10 h-10 text-indigo-600" />
@@ -61,7 +63,7 @@ const CartPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items List */}
           <div className="lg:col-span-2 space-y-4">
-            {cart?.products?.map((item) => (
+            {validProducts.map((item) => (
               <div key={item.productId._id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start transition hover:border-indigo-100">
                 <Link to={`/product/${item.productId.slug}`} className="shrink-0">
                   <img
@@ -133,8 +135,8 @@ const CartPage = () => {
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-slate-600">
-                  <span>Subtotal ({cart?.products?.length} items)</span>
-                  <span className="font-medium">₹{cart?.totalAmount?.toLocaleString('en-IN')}</span>
+                  <span>Subtotal ({validProducts.length} items)</span>
+                  <span className="font-medium">₹{cart?.totalAmount?.toLocaleString('en-IN') || 0}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Shipping estimate</span>
