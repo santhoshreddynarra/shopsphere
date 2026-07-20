@@ -82,19 +82,92 @@ const getCart = asyncHandler(async (req, res) => {
     select: 'name images price discountPrice stock slug brand'
   });
 
-  if (!cart) {
-    return res.status(200).json({ products: [], totalAmount: 0 });
+  if (!cart || cart.products.length === 0) {
+    return res.status(200).json({ 
+      products: [], 
+      itemsPrice: 0,
+      discount: 0,
+      subtotal: 0,
+      tax: 0,
+      shipping: 0,
+      totalAmount: 0 
+    });
   }
 
-  // Calculate total
-  const totalAmount = cart.products.reduce((acc, item) => acc + item.subtotal, 0);
+  let modified = false;
+  const validProducts = [];
 
-  // Return cart with populated product details and total
+  for (let item of cart.products) {
+    // 1. Remove if product was deleted from database
+    if (!item.productId) {
+      modified = true;
+      continue;
+    }
+
+    const product = item.productId;
+
+    // 2. Remove if out of stock
+    if (product.stock <= 0) {
+      modified = true;
+      continue;
+    }
+
+    // 3. Cap quantity to max stock
+    if (item.quantity > product.stock) {
+      item.quantity = product.stock;
+      modified = true;
+    }
+
+    // 4. Update to latest price
+    const currentPrice = product.discountPrice > 0 ? product.discountPrice : product.price;
+    if (item.price !== currentPrice || item.subtotal !== (item.quantity * currentPrice)) {
+      item.price = currentPrice;
+      item.subtotal = item.quantity * currentPrice;
+      modified = true;
+    }
+
+    validProducts.push(item);
+  }
+
+  if (modified) {
+    cart.products = validProducts;
+    await cart.save();
+  }
+
+  // Calculate Dynamic Billing
+  let itemsPrice = 0; // sum of original prices
+  let discountAmount = 0;
+
+  validProducts.forEach(item => {
+    itemsPrice += (item.productId.price * item.quantity);
+    if (item.productId.discountPrice > 0) {
+      discountAmount += ((item.productId.price - item.productId.discountPrice) * item.quantity);
+    }
+  });
+
+  const subtotalAfterDiscount = itemsPrice - discountAmount;
+  
+  // Calculate Tax (e.g. 18% exclusive)
+  const tax = Math.round(subtotalAfterDiscount * 0.18);
+  
+  // Calculate Shipping (Free above ₹999, else ₹99)
+  let shipping = 0;
+  if (validProducts.length > 0) {
+    shipping = subtotalAfterDiscount > 999 ? 0 : 99;
+  }
+
+  const grandTotal = subtotalAfterDiscount + tax + shipping;
+
   res.status(200).json({
     _id: cart._id,
     user: cart.user,
     products: cart.products,
-    totalAmount
+    itemsPrice,
+    discount: discountAmount,
+    subtotal: subtotalAfterDiscount,
+    tax,
+    shipping,
+    totalAmount: grandTotal
   });
 });
 

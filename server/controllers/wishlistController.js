@@ -47,8 +47,25 @@ const getWishlist = asyncHandler(async (req, res) => {
     select: 'name images price discountPrice stock slug brand rating numReviews'
   });
 
-  if (!wishlist) {
+  if (!wishlist || wishlist.products.length === 0) {
     return res.status(200).json({ products: [] });
+  }
+
+  let modified = false;
+  const validProducts = [];
+
+  for (let item of wishlist.products) {
+    // Remove if product was deleted
+    if (!item.productId) {
+      modified = true;
+      continue;
+    }
+    validProducts.push(item);
+  }
+
+  if (modified) {
+    wishlist.products = validProducts;
+    await wishlist.save();
   }
 
   res.status(200).json(wishlist);
