@@ -71,28 +71,50 @@ const stripeWebhook = asyncHandler(async (req, res) => {
 
   // Handle the event
   switch (event.type) {
-    case 'payment_intent.succeeded':
+    case 'payment_intent.succeeded': {
       const paymentIntent = event.data.object;
       const orderId = paymentIntent.metadata?.orderId;
       
       if (orderId) {
-        const order = await Order.findById(orderId);
+        const order = await Order.findById(orderId).populate('orderItems.product');
         
         if (order) {
           // Check if already paid to prevent duplicate processing
           if (!order.isPaid) {
             // Verify amount
             if (paymentIntent.amount === Math.round(order.totalPrice * 100)) {
+              // Mark order as paid
               order.isPaid = true;
               order.paidAt = Date.now();
               order.status = 'Confirmed';
+              order.paymentProvider = 'Stripe';
               order.paymentResult = {
                 id: paymentIntent.id,
                 status: paymentIntent.status,
+                amountPaid: paymentIntent.amount / 100,
+                currency: paymentIntent.currency,
                 email_address: paymentIntent.receipt_email || '',
+                webhook_ref: event.id,
               };
+
+              // Deduct Inventory Stock!
+              for (const item of order.orderItems) {
+                // If populated
+                if (item.product && item.product.stock !== undefined) {
+                  item.product.stock -= item.qty;
+                  await item.product.save();
+                } else {
+                  // Fallback if not fully populated
+                  const productDoc = await Product.findById(item.product);
+                  if (productDoc) {
+                    productDoc.stock -= item.qty;
+                    await productDoc.save();
+                  }
+                }
+              }
+
               await order.save();
-              console.log(`Order ${orderId} marked as paid from webhook`);
+              console.log(`Order ${orderId} marked as paid from webhook and inventory updated.`);
             } else {
               console.error(`Amount mismatch for order ${orderId}: Expected ${Math.round(order.totalPrice * 100)}, got ${paymentIntent.amount}`);
             }
@@ -102,6 +124,7 @@ const stripeWebhook = asyncHandler(async (req, res) => {
         }
       }
       break;
+    }
       
     case 'payment_intent.payment_failed':
       console.error(`Payment failed: ${event.data.object.last_payment_error?.message}`);

@@ -32,11 +32,17 @@ const orderSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    paymentProvider: {
+      type: String,
+    },
     paymentResult: {
       id: { type: String },
       status: { type: String },
+      amountPaid: { type: Number },
+      currency: { type: String },
       update_time: { type: String },
       email_address: { type: String },
+      webhook_ref: { type: String },
     },
     itemsPrice: {
       type: Number,

@@ -22,6 +22,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
   }
 
   let itemsPrice = 0;
+  let discountAmount = 0;
   const finalOrderItems = [];
 
   for (const item of orderItems) {
@@ -37,25 +38,26 @@ const addOrderItems = asyncHandler(async (req, res) => {
       throw new Error(`Insufficient stock for ${product.name}`);
     }
 
-    const actualPrice = product.discountPrice > 0 ? product.discountPrice : product.price;
-    itemsPrice += actualPrice * item.qty;
+    const currentPrice = product.discountPrice > 0 ? product.discountPrice : product.price;
+    
+    itemsPrice += product.price * item.qty;
+    if (product.discountPrice > 0) {
+      discountAmount += (product.price - product.discountPrice) * item.qty;
+    }
 
     finalOrderItems.push({
       name: product.name,
       qty: item.qty,
-      image: product.images && product.images.length > 0 ? product.images[0] : '',
-      price: actualPrice,
+      image: product.images && product.images.length > 0 ? product.images[0]?.url || product.images[0] : '',
+      price: currentPrice,
       product: product._id,
     });
-
-    // Deduct stock
-    product.stock -= item.qty;
-    await product.save();
   }
 
-  const taxPrice = 0;
-  const shippingPrice = 0;
-  const totalPrice = itemsPrice + taxPrice + shippingPrice;
+  const subtotalAfterDiscount = itemsPrice - discountAmount;
+  const taxPrice = Math.round(subtotalAfterDiscount * 0.18);
+  const shippingPrice = subtotalAfterDiscount > 999 ? 0 : 99;
+  const totalPrice = subtotalAfterDiscount + taxPrice + shippingPrice;
 
   const order = new Order({
     orderItems: finalOrderItems,
