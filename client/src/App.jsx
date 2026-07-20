@@ -13,6 +13,8 @@ import PaymentPage from './pages/PaymentPage.jsx';
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx';
 import MyOrdersPage from './pages/MyOrdersPage.jsx';
 import OrderDetailsPage from './pages/OrderDetailsPage.jsx';
+import AdminLayout from './layouts/AdminLayout.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 
 const App = () => {
   return (
@@ -38,6 +40,11 @@ const App = () => {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/order-success/:id" element={<OrderSuccessPage />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminDashboard />} />
         </Route>
       </Routes>
     </BrowserRouter>
