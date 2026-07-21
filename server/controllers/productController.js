@@ -124,4 +124,104 @@ const getRelatedProducts = asyncHandler(async (req, res) => {
   res.json(related);
 });
 
-export { getProducts, getFeaturedProducts, getProductBySlug, getRelatedProducts };
+// @desc    Create a product
+// @route   POST /api/products
+// @access  Private/Admin
+const createProduct = asyncHandler(async (req, res) => {
+  const { name, slug, price, description, image, brand, category, stock, discountPrice } = req.body;
+
+  const productExists = await Product.findOne({ slug });
+  if (productExists) {
+    res.status(400);
+    throw new Error('Product with this slug already exists');
+  }
+
+  const categoryDoc = await Category.findOne({ name: category });
+  const categoryId = categoryDoc ? categoryDoc._id : null;
+
+  const product = new Product({
+    name: name || 'Sample name',
+    slug: slug || `sample-name-${Date.now()}`,
+    price: price || 0,
+    user: req.user._id,
+    images: image ? [image] : ['https://via.placeholder.com/800x800'],
+    brand: brand || 'Sample brand',
+    category: categoryId,
+    stock: stock || 0,
+    numReviews: 0,
+    description: description || 'Sample description',
+    discountPrice: discountPrice || 0,
+  });
+
+  const createdProduct = await product.save();
+  res.status(201).json(createdProduct);
+});
+
+// @desc    Update a product
+// @route   PUT /api/products/:id
+// @access  Private/Admin
+const updateProduct = asyncHandler(async (req, res) => {
+  const { name, slug, price, description, image, brand, category, stock, discountPrice } = req.body;
+
+  const product = await Product.findById(req.params.id);
+
+  if (product) {
+    product.name = name || product.name;
+    product.price = price || product.price;
+    product.description = description || product.description;
+    product.brand = brand || product.brand;
+    product.stock = stock !== undefined ? stock : product.stock;
+    product.discountPrice = discountPrice !== undefined ? discountPrice : product.discountPrice;
+
+    if (image) {
+      product.images = [image];
+    }
+    
+    if (slug && slug !== product.slug) {
+      const slugExists = await Product.findOne({ slug, _id: { $ne: product._id } });
+      if (slugExists) {
+        res.status(400);
+        throw new Error('Product with this slug already exists');
+      }
+      product.slug = slug;
+    }
+
+    if (category) {
+      const categoryDoc = await Category.findOne({ name: category });
+      if (categoryDoc) {
+        product.category = categoryDoc._id;
+      }
+    }
+
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+});
+
+// @desc    Delete a product
+// @route   DELETE /api/products/:id
+// @access  Private/Admin
+const deleteProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+
+  if (product) {
+    await Product.deleteOne({ _id: product._id });
+    res.json({ message: 'Product removed' });
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+});
+
+export { 
+  getProducts, 
+  getFeaturedProducts, 
+  getProductBySlug, 
+  getRelatedProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct
+};
