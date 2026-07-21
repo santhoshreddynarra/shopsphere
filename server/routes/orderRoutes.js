@@ -17,7 +17,7 @@ router.route('/').post(protect, addOrderItems).get(protect, admin, getOrders);
 router.route('/myorders').get(protect, getMyOrders);
 router.route('/:id').get(protect, getOrderById);
 router.route('/:id/cancel').put(protect, cancelOrder);
-router.route('/:id/pay').put(protect, updateOrderToPaid);
+router.route('/:id/pay').put(protect, admin, updateOrderToPaid);
 router.route('/:id/status').put(protect, admin, updateOrderStatus);
 router.route('/:id/invoice').get(protect, generateInvoice);
 
