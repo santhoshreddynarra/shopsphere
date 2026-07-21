@@ -1,56 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
-import { getProfileDetails, updateUserProfile } from '../features/auth/authSlice.js';
-import { User, Mail, Shield, Calendar, Package, MapPin, Heart, Edit2, Check, AlertCircle, Loader2 } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { updateProfile, clearError } from '../features/auth/authSlice.js';
+import { User, Mail, Lock, ShieldCheck, Package, MapPin, Heart, ShoppingCart, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const ProfilePage = () => {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const { userInfo, isLoading, error } = useAppSelector((state) => state.auth);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [updateLoading, setUpdateLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
-    if (!userInfo) {
-      navigate('/login');
-    } else {
+    if (userInfo) {
       setName(userInfo.name || '');
       setEmail(userInfo.email || '');
-      dispatch(getProfileDetails()).unwrap().catch(() => {
-        // Fallback silently if cached userInfo is valid
-      });
     }
-  }, [dispatch, userInfo, navigate]);
+  }, [userInfo]);
 
-  const handleUpdate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage(null);
+    dispatch(clearError());
 
     if (password && password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      setMessage('Passwords do not match');
       return;
     }
 
-    setUpdateLoading(true);
     try {
       const updateData = { name, email };
-      if (password) updateData.password = password;
-
-      await dispatch(updateUserProfile(updateData)).unwrap();
+      if (password) {
+        updateData.password = password;
+      }
+      const result = await dispatch(updateProfile(updateData)).unwrap();
       toast.success('Profile updated successfully!');
-      setIsEditing(false);
       setPassword('');
       setConfirmPassword('');
     } catch (err) {
       toast.error(err || 'Failed to update profile');
-    } finally {
-      setUpdateLoading(false);
     }
   };
 
@@ -64,202 +56,206 @@ const ProfilePage = () => {
 
   if (!userInfo) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Please log in</h2>
-        <p className="text-slate-500 mb-6">You must be logged in to view your profile.</p>
-        <Link to="/login" className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition">
-          Sign In
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <h2 className="text-2xl font-bold text-slate-900 mb-4">Please log in to view your profile</h2>
+        <Link
+          to="/login"
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition"
+        >
+          Go to Login
         </Link>
       </div>
     );
   }
 
-  const joinDate = userInfo?.createdAt
+  const memberDate = userInfo.createdAt 
     ? new Date(userInfo.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-    : 'Member';
+    : 'Valued Customer';
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-slate-900 mb-8">My Account</h1>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="bg-slate-50 min-h-screen pt-24 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* User Card */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-extrabold text-3xl mx-auto mb-4 shadow-md shadow-indigo-100">
-              {userInfo?.name ? userInfo.name.charAt(0).toUpperCase() : 'U'}
-            </div>
-            <h2 className="text-xl font-bold text-slate-900">{userInfo?.name || 'User'}</h2>
-            <p className="text-sm text-slate-500 mb-4">{userInfo?.email || ''}</p>
-
-            <div className="flex items-center justify-center gap-2 mb-6">
-              {userInfo?.isAdmin ? (
-                <span className="inline-flex items-center gap-1 text-xs font-bold bg-purple-50 text-purple-700 px-3 py-1 rounded-full border border-purple-200">
-                  <Shield className="w-3.5 h-3.5" /> Administrator
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100">
-                  <User className="w-3.5 h-3.5" /> Customer Account
-                </span>
-              )}
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-center gap-2 text-xs text-slate-500">
-              <Calendar className="w-4 h-4 text-slate-400" />
-              <span>Joined {joinDate}</span>
-            </div>
-          </div>
-
-          {/* Quick Shortcuts */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-            <Link to="/orders" className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
-              <div className="flex items-center gap-3">
-                <Package className="w-5 h-5 text-indigo-600" />
-                <span>My Orders</span>
-              </div>
-              <span className="text-slate-400">&rarr;</span>
-            </Link>
-            <Link to="/addresses" className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
-              <div className="flex items-center gap-3">
-                <MapPin className="w-5 h-5 text-indigo-600" />
-                <span>Shipping Addresses</span>
-              </div>
-              <span className="text-slate-400">&rarr;</span>
-            </Link>
-            <Link to="/wishlist" className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
-              <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-indigo-600" />
-                <span>My Wishlist</span>
-              </div>
-              <span className="text-slate-400">&rarr;</span>
-            </Link>
-          </div>
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900">My Account</h1>
+          <p className="text-slate-500 mt-1">Manage your personal information, security, and preferences.</p>
         </div>
 
-        {/* Profile Details & Form */}
-        <div className="lg:col-span-2">
-          <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Personal Information</h3>
-                <p className="text-sm text-slate-500">Update your account details and password</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* User Card Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 text-center">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center text-3xl font-extrabold mx-auto mb-4 shadow-lg shadow-indigo-200">
+                {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : 'U'}
               </div>
-              {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-semibold hover:bg-indigo-100 transition"
-                >
-                  <Edit2 className="w-4 h-4" /> Edit Profile
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setIsEditing(false);
-                    setName(userInfo?.name || '');
-                    setEmail(userInfo?.email || '');
-                    setPassword('');
-                    setConfirmPassword('');
-                  }}
-                  className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition"
-                >
-                  Cancel
-                </button>
-              )}
+              <h2 className="text-xl font-bold text-slate-900">{userInfo.name}</h2>
+              <p className="text-sm text-slate-500 mb-3">{userInfo.email}</p>
+              
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-semibold mb-4">
+                <ShieldCheck className="w-4 h-4" />
+                {userInfo.isAdmin ? 'Administrator' : 'Customer Account'}
+              </div>
+
+              <div className="border-t border-slate-100 pt-4 text-xs text-slate-400">
+                Member since {memberDate}
+              </div>
             </div>
 
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
+            {/* Quick Navigation Links */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 space-y-1">
+              <Link
+                to="/orders"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 font-medium transition"
+              >
+                <Package className="w-5 h-5 text-slate-400" />
+                My Orders
+              </Link>
+              <Link
+                to="/addresses"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 font-medium transition"
+              >
+                <MapPin className="w-5 h-5 text-slate-400" />
+                Saved Addresses
+              </Link>
+              <Link
+                to="/wishlist"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 font-medium transition"
+              >
+                <Heart className="w-5 h-5 text-slate-400" />
+                Wishlist
+              </Link>
+              <Link
+                to="/cart"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-indigo-600 font-medium transition"
+              >
+                <ShoppingCart className="w-5 h-5 text-slate-400" />
+                Shopping Cart
+              </Link>
+            </div>
+          </div>
 
-            <form onSubmit={handleUpdate} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Profile Edit Form */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+              <h2 className="text-xl font-bold text-slate-900 mb-6">Profile Information</h2>
+
+              {message && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-sm font-medium">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  {message}
+                </div>
+              )}
+
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-sm font-medium">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* Name */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Full Name
+                  </label>
                   <div className="relative">
-                    <User className="w-5 h-5 text-slate-400 absolute left-3.5 top-3" />
+                    <User className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      disabled={!isEditing}
                       required
-                      className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-slate-100 disabled:text-slate-500 transition"
+                      placeholder="Enter your full name"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition text-sm"
                     />
                   </div>
                 </div>
 
+                {/* Email */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Email Address
+                  </label>
                   <div className="relative">
-                    <Mail className="w-5 h-5 text-slate-400 absolute left-3.5 top-3" />
+                    <Mail className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      disabled={!isEditing}
                       required
-                      className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-slate-100 disabled:text-slate-500 transition"
+                      placeholder="Enter your email address"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition text-sm"
                     />
                   </div>
                 </div>
-              </div>
 
-              {isEditing && (
-                <div className="pt-6 border-t border-slate-100 space-y-6">
-                  <h4 className="font-bold text-slate-900 text-sm">Change Password <span className="font-normal text-slate-400">(leave blank to keep current)</span></h4>
+                <hr className="border-slate-100 my-6" />
+                <h3 className="text-md font-bold text-slate-900">Change Password (Optional)</h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">New Password</label>
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Confirm New Password</label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-4">
-                    <button
-                      type="submit"
-                      disabled={updateLoading}
-                      className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl transition shadow-md shadow-indigo-200 disabled:opacity-50"
-                    >
-                      {updateLoading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" /> Updating...
-                        </>
-                      ) : (
-                        <>
-                          <Check className="w-5 h-5" /> Save Changes
-                        </>
-                      )}
-                    </button>
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Leave blank to keep current password"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition text-sm"
+                    />
                   </div>
                 </div>
-              )}
-            </form>
-          </div>
-        </div>
 
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter your new password"
+                      className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 outline-none transition text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-2xl transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Saving Changes...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-5 h-5" />
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );

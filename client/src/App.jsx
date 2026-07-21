@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from './hooks/useRedux.js';
+import { useAppDispatch } from './hooks/useRedux.js';
 import { fetchCart } from './features/cart/cartSlice.js';
 import { fetchWishlist } from './features/wishlist/wishlistSlice.js';
 import { logout } from './features/auth/authSlice.js';
@@ -28,21 +28,16 @@ import AdminUsers from './pages/admin/AdminUsers.jsx';
 
 const AppInit = ({ children }) => {
   const dispatch = useAppDispatch();
-  const { userInfo } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (userInfo) {
-      // Restore Cart and Wishlist on App Startup
-      dispatch(fetchCart()).unwrap().catch((err) => {
-        if (err === 'Not authorized, token failed' || err === 'Not authorized, no token') {
-          dispatch(logout()); // Token expired/invalid
-        }
-      });
-      dispatch(fetchWishlist()).unwrap().catch((err) => {
-        // Handled by cart fetch above
-      });
-    }
-  }, [dispatch, userInfo]);
+    // Restore Cart and Wishlist on App Startup (both logged-in and guest)
+    dispatch(fetchCart()).unwrap().catch((err) => {
+      if (err === 'Not authorized, token failed' || err === 'Not authorized, no token') {
+        dispatch(logout()); // Token expired/invalid
+      }
+    });
+    dispatch(fetchWishlist()).unwrap().catch(() => {});
+  }, [dispatch]);
 
   return children;
 };
@@ -64,16 +59,16 @@ const App = () => {
             <Route path="/category/:categorySlug" element={<ProductsPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
-          </Route>
 
-          {/* Protected pages */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/addresses" element={<AddressPage />} />
-            <Route path="/orders" element={<MyOrdersPage />} />
-            <Route path="/orders/:id" element={<OrderDetailsPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/order-success/:id" element={<OrderSuccessPage />} />
+            {/* Protected pages with layout */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/addresses" element={<AddressPage />} />
+              <Route path="/orders" element={<MyOrdersPage />} />
+              <Route path="/orders/:id" element={<OrderDetailsPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/order-success/:id" element={<OrderSuccessPage />} />
+            </Route>
           </Route>
 
           {/* Admin Routes */}

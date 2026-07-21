@@ -14,6 +14,11 @@ const logout = async () => {
   await axiosInstance.post('/users/logout');
 };
 
+const getProfile = async () => {
+  const { data } = await axiosInstance.get('/users/profile');
+  return data;
+};
+
 const updateProfile = async (userData) => {
   const { data } = await axiosInstance.put('/users/profile', userData);
   return data;

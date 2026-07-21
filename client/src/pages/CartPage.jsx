@@ -32,8 +32,7 @@ const CartPage = () => {
     );
   }
 
-  // Filter valid products safely (item must exist and have a valid product or productId reference)
-  const validProducts = (cart?.products || []).filter(item => item && (item.productId || item.product));
+  const validProducts = (cart?.products || []).filter(item => item?.productId);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -60,89 +59,69 @@ const CartPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items List */}
           <div className="lg:col-span-2 space-y-4">
-            {validProducts.map((item) => {
-              const product = item.productId || item.product || {};
-              const productId = product._id || (typeof product === 'string' ? product : item._id);
-              const name = product.name || 'Product Item';
-              const brand = product.brand || '';
-              const slug = product.slug || '#';
-              const stock = typeof product.stock === 'number' ? product.stock : 99;
-              const imageUrl = Array.isArray(product.images) && product.images.length > 0
-                ? (product.images[0]?.url || product.images[0])
-                : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80';
-              
-              const itemPrice = typeof item.price === 'number'
-                ? item.price
-                : (product.discountPrice > 0 ? product.discountPrice : (product.price || 0));
-              
-              const originalPrice = product.price || itemPrice;
-              const discountPrice = product.discountPrice || 0;
-              const quantity = Number(item.quantity) || 1;
-
-              return (
-                <div key={productId} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start transition hover:border-indigo-100">
-                  <Link to={slug !== '#' ? `/products/${slug}` : '#'} className="shrink-0">
-                    <img
-                      src={imageUrl}
-                      alt={name}
-                      className="w-32 h-32 object-cover rounded-xl border border-slate-100"
-                    />
-                  </Link>
-                  
-                  <div className="flex-grow flex flex-col justify-between h-full w-full">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <Link to={slug !== '#' ? `/products/${slug}` : '#'}>
-                          <h3 className="text-lg font-bold text-slate-900 hover:text-indigo-600 transition line-clamp-1">
-                            {name}
-                          </h3>
-                        </Link>
-                        {brand && <p className="text-sm text-slate-500 mt-1">{brand}</p>}
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-slate-900">₹{(itemPrice * quantity).toLocaleString('en-IN')}</p>
-                        {discountPrice > 0 && originalPrice > discountPrice && (
-                          <p className="text-sm text-slate-400 line-through">₹{(originalPrice * quantity).toLocaleString('en-IN')}</p>
-                        )}
-                      </div>
+            {validProducts.map((item) => (
+              <div key={item.productId._id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start transition hover:border-indigo-100">
+                <Link to={`/product/${item.productId.slug}`} className="shrink-0">
+                  <img
+                    src={item.productId.images[0]?.url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80'}
+                    alt={item.productId.name}
+                    className="w-32 h-32 object-cover rounded-xl border border-slate-100"
+                  />
+                </Link>
+                
+                <div className="flex-grow flex flex-col justify-between h-full w-full">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <Link to={`/product/${item.productId.slug}`}>
+                        <h3 className="text-lg font-bold text-slate-900 hover:text-indigo-600 transition line-clamp-1">
+                          {item.productId.name}
+                        </h3>
+                      </Link>
+                      <p className="text-sm text-slate-500 mt-1">{item.productId.brand}</p>
                     </div>
-                    
-                    <div className="flex items-center justify-between mt-auto">
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
-                        <button
-                          onClick={() => handleUpdateQuantity(productId, quantity, quantity - 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition disabled:opacity-50"
-                          disabled={isLoading || quantity <= 1}
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="w-10 text-center font-medium text-slate-900 text-sm">
-                          {quantity}
-                        </span>
-                        <button
-                          onClick={() => handleUpdateQuantity(productId, quantity, quantity + 1)}
-                          className="w-8 h-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition disabled:opacity-50"
-                          disabled={isLoading || quantity >= stock}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      {/* Remove Action */}
-                      <button
-                        onClick={() => handleRemoveItem(productId)}
-                        className="text-sm font-medium text-slate-400 hover:text-red-600 flex items-center gap-1.5 transition disabled:opacity-50"
-                        disabled={isLoading}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Remove
-                      </button>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-slate-900">₹{item.price.toLocaleString('en-IN')}</p>
+                      {item.productId.discountPrice > 0 && item.productId.price > item.productId.discountPrice && (
+                        <p className="text-sm text-slate-400 line-through">₹{item.productId.price.toLocaleString('en-IN')}</p>
+                      )}
                     </div>
                   </div>
+                  
+                  <div className="flex items-center justify-between mt-auto">
+                    {/* Quantity Controls */}
+                    <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-1">
+                      <button
+                        onClick={() => handleUpdateQuantity(item.productId._id, item.quantity, item.quantity - 1)}
+                        className="w-8 h-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition"
+                        disabled={isLoading || item.quantity <= 1}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-10 text-center font-medium text-slate-900 text-sm">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleUpdateQuantity(item.productId._id, item.quantity, item.quantity + 1)}
+                        className="w-8 h-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition"
+                        disabled={isLoading || item.quantity >= item.productId.stock}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    {/* Remove Action */}
+                    <button
+                      onClick={() => handleRemoveItem(item.productId._id)}
+                      className="text-sm font-medium text-slate-400 hover:text-red-600 flex items-center gap-1.5 transition"
+                      disabled={isLoading}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Remove
+                    </button>
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
           {/* Order Summary */}
@@ -152,27 +131,27 @@ const CartPage = () => {
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-slate-600">
-                  <span>Subtotal ({validProducts.reduce((acc, item) => acc + (Number(item.quantity) || 1), 0)} items)</span>
-                  <span className="font-medium">₹{(Number(cart?.itemsPrice) || 0).toLocaleString('en-IN')}</span>
+                  <span>Subtotal ({validProducts.reduce((acc, item) => acc + item.quantity, 0)} items)</span>
+                  <span className="font-medium">₹{cart?.itemsPrice?.toLocaleString('en-IN') || 0}</span>
                 </div>
                 
-                {(Number(cart?.discount) || 0) > 0 && (
+                {cart?.discount > 0 && (
                   <div className="flex justify-between text-emerald-600">
                     <span>Discount</span>
-                    <span className="font-medium">-₹{Number(cart.discount).toLocaleString('en-IN')}</span>
+                    <span className="font-medium">-₹{cart.discount.toLocaleString('en-IN')}</span>
                   </div>
                 )}
                 
                 <div className="flex justify-between text-slate-600">
                   <span>Shipping</span>
-                  <span className={(cart?.shipping === 0 || cart?.subtotal > 999) ? "font-medium text-emerald-600" : "font-medium"}>
-                    {(cart?.shipping === 0 || cart?.subtotal > 999) ? 'Free' : `₹${cart?.shipping || 99}`}
+                  <span className={cart?.shipping === 0 ? "font-medium text-emerald-600" : "font-medium"}>
+                    {cart?.shipping === 0 ? 'Free' : `₹${cart?.shipping}`}
                   </span>
                 </div>
                 
                 <div className="flex justify-between text-slate-600">
                   <span>Tax (18%)</span>
-                  <span className="font-medium">₹{(Number(cart?.tax) || 0).toLocaleString('en-IN')}</span>
+                  <span className="font-medium">₹{cart?.tax?.toLocaleString('en-IN') || 0}</span>
                 </div>
               </div>
               
@@ -180,7 +159,7 @@ const CartPage = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-bold text-slate-900">Order Total</span>
                   <span className="text-2xl font-bold text-indigo-600">
-                    ₹{(Number(cart?.totalAmount) || 0).toLocaleString('en-IN')}
+                    ₹{cart?.totalAmount?.toLocaleString('en-IN') || 0}
                   </span>
                 </div>
               </div>
