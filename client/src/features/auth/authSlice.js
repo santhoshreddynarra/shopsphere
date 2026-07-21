@@ -12,12 +12,15 @@ const initialState = {
   error: null,
 };
 
-const mergeGuestData = async (thunkAPI) => {
+const mergeGuestData = async (user, thunkAPI) => {
   try {
     const localCart = JSON.parse(localStorage.getItem('cart'));
     if (localCart && localCart.products && localCart.products.length > 0) {
       for (const item of localCart.products) {
-        await cartService.addToCart({ productId: item.productId._id || item.productId, quantity: item.quantity });
+        const pId = item.productId?._id || item.productId;
+        if (pId) {
+          await cartService.addToCart({ productId: pId, quantity: item.quantity || 1 });
+        }
       }
       localStorage.removeItem('cart');
     }
@@ -25,14 +28,13 @@ const mergeGuestData = async (thunkAPI) => {
     const localWishlist = JSON.parse(localStorage.getItem('wishlist'));
     if (localWishlist && localWishlist.products && localWishlist.products.length > 0) {
       for (const item of localWishlist.products) {
-        await wishlistService.addToWishlist(item.productId._id || item.productId);
+        const pId = item.productId?._id || item.productId;
+        if (pId) {
+          await wishlistService.addToWishlist(pId);
+        }
       }
       localStorage.removeItem('wishlist');
     }
-    
-    // Fetch updated data to sync Redux
-    thunkAPI.dispatch(fetchCart());
-    thunkAPI.dispatch(fetchWishlist());
   } catch (error) {
     console.error('Failed to merge guest data', error);
   }
@@ -44,10 +46,12 @@ export const login = createAsyncThunk(
     try {
       const data = await authService.login(credentials);
       localStorage.setItem('userInfo', JSON.stringify(data));
-      await mergeGuestData(thunkAPI);
+      await mergeGuestData(data, thunkAPI);
+      thunkAPI.dispatch(fetchCart());
+      thunkAPI.dispatch(fetchWishlist());
       return data;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.message);
+      return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
@@ -58,15 +62,41 @@ export const register = createAsyncThunk(
     try {
       const data = await authService.register(userData);
       localStorage.setItem('userInfo', JSON.stringify(data));
-      await mergeGuestData(thunkAPI);
+      await mergeGuestData(data, thunkAPI);
+      thunkAPI.dispatch(fetchCart());
+      thunkAPI.dispatch(fetchWishlist());
       return data;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.message);
+      return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
     }
   }
 );
 
+export const getProfileDetails = createAsyncThunk(
+  'auth/getProfileDetails',
+  async (_, thunkAPI) => {
+    try {
+      const data = await authService.getProfile();
+      localStorage.setItem('userInfo', JSON.stringify(data));
+      return data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 
+export const updateUserProfile = createAsyncThunk(
+  'auth/updateUserProfile',
+  async (userData, thunkAPI) => {
+    try {
+      const data = await authService.updateProfile(userData);
+      localStorage.setItem('userInfo', JSON.stringify(data));
+      return data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+    }
+  }
+);
 
 export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
   try {
@@ -76,7 +106,7 @@ export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
     localStorage.removeItem('wishlist');
     return null;
   } catch (err) {
-    return thunkAPI.rejectWithValue(err.message);
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
@@ -98,6 +128,14 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(register.fulfilled, (state, action) => { state.isLoading = false; state.userInfo = action.payload; })
       .addCase(register.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
+      // Get Profile
+      .addCase(getProfileDetails.pending, (state) => { state.isLoading = true; state.error = null; })
+      .addCase(getProfileDetails.fulfilled, (state, action) => { state.isLoading = false; state.userInfo = action.payload; })
+      .addCase(getProfileDetails.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
+      // Update Profile
+      .addCase(updateUserProfile.pending, (state) => { state.isLoading = true; state.error = null; })
+      .addCase(updateUserProfile.fulfilled, (state, action) => { state.isLoading = false; state.userInfo = action.payload; })
+      .addCase(updateUserProfile.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
       // Logout
       .addCase(logout.fulfilled, (state) => { state.userInfo = null; state.error = null; });
   },

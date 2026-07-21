@@ -14,11 +14,11 @@ const logout = async () => {
   await axiosInstance.post('/users/logout');
 };
 
-const getProfile = async () => {
-  const { data } = await axiosInstance.get('/users/profile');
+const updateProfile = async (userData) => {
+  const { data } = await axiosInstance.put('/users/profile', userData);
   return data;
 };
 
-const authService = { login, register, logout, getProfile };
+const authService = { login, register, logout, getProfile, updateProfile };
 
 export default authService;

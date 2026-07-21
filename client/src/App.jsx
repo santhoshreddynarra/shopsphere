@@ -14,6 +14,7 @@ import ProductsPage from './pages/ProductsPage.jsx';
 import ProductDetailsPage from './pages/ProductDetailsPage.jsx';
 import CartPage from './pages/CartPage.jsx';
 import WishlistPage from './pages/WishlistPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 import AddressPage from './pages/AddressPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx';
@@ -67,7 +68,7 @@ const App = () => {
 
           {/* Protected pages */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/profile" element={<div className="max-w-7xl mx-auto py-6 px-4 text-slate-200">Profile</div>} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/addresses" element={<AddressPage />} />
             <Route path="/orders" element={<MyOrdersPage />} />
             <Route path="/orders/:id" element={<OrderDetailsPage />} />
