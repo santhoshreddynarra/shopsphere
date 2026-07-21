@@ -6,8 +6,12 @@ import { useAppDispatch } from '../hooks/useRedux.js';
 import axiosInstance from '../services/axiosInstance.js';
 import { clearCart } from '../features/cart/cartSlice.js';
 
-// Ensure you replace this with your actual Stripe publishable key from your .env
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_placeholder');
+// Load Stripe securely using environment variables without hardcoded fallbacks
+let stripePromise = null;
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+if (stripePublicKey && stripePublicKey.startsWith('pk_')) {
+  stripePromise = loadStripe(stripePublicKey);
+}
 
 const CheckoutForm = ({ clientSecret, orderId, totalPrice }) => {
   const stripe = useStripe();
@@ -102,7 +106,7 @@ const PaymentPage = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Payment Setup Failed</h2>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Payment Service Unavailable</h2>
         <p className="text-slate-500 mb-6">{pageError}</p>
         <button 
           onClick={() => navigate('/orders')} 

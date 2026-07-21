@@ -4,13 +4,29 @@ import Order from '../models/Order.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
+let stripe = null;
+
+try {
+  // Only initialize if it looks somewhat like a valid key format, or let it throw
+  if (stripeSecretKey && stripeSecretKey.startsWith('sk_')) {
+    stripe = new Stripe(stripeSecretKey);
+  }
+} catch (error) {
+  console.error('Failed to initialize Stripe:', error.message);
+}
 
 // @desc    Create Payment Intent
 // @route   POST /api/payment/create-payment-intent
 // @access  Private
 const createPaymentIntent = asyncHandler(async (req, res) => {
   const { orderId } = req.body;
+
+  if (!stripe) {
+    console.error('Stripe is not initialized. STRIPE_SECRET_KEY may be missing or invalid.');
+    res.status(503);
+    throw new Error('Payment service is currently unavailable. Please try again later.');
+  }
 
   if (!orderId) {
     res.status(400);
@@ -36,20 +52,26 @@ const createPaymentIntent = asyncHandler(async (req, res) => {
 
   const amountInPaise = Math.round(order.totalPrice * 100);
 
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: amountInPaise,
-    currency: 'inr',
-    automatic_payment_methods: {
-      enabled: true,
-    },
-    metadata: {
-      orderId: order._id.toString(),
-    },
-  });
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amountInPaise,
+      currency: 'inr',
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      metadata: {
+        orderId: order._id.toString(),
+      },
+    });
 
-  res.send({
-    clientSecret: paymentIntent.client_secret,
-  });
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.error('Stripe Payment Intent Error:', error.message);
+    res.status(500);
+    throw new Error('Payment processing failed. Please try again later.');
+  }
 });
 
 // @desc    Stripe Webhook
