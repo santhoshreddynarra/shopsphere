@@ -45,7 +45,7 @@ const AdminOrders = () => {
     );
   }
 
-  const statuses = ['Pending', 'Confirmed', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
+  const statuses = ['Processing', 'Confirmed', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
 
   return (
     <div className="space-y-6">
