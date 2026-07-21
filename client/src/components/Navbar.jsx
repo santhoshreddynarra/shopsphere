@@ -35,6 +35,12 @@ const Navbar = () => {
     navigate('/');
   };
 
+  const cartItems = (cart?.products || []).filter((item) => item && item.productId);
+  const cartItemCount = cartItems.reduce((acc, item) => acc + (Number(item.quantity) || 0), 0);
+
+  const wishlistItems = (wishlist?.products || []).filter((item) => item && item.productId);
+  const wishlistCount = wishlistItems.length;
+
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-md bg-white/90">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -78,17 +84,17 @@ const Navbar = () => {
             <div className="flex items-center gap-4 border-l border-slate-200 pl-6">
               <Link to="/wishlist" className="text-slate-500 hover:text-indigo-600 transition-colors relative">
                 <Heart className="w-5 h-5" />
-                {wishlist?.products?.filter(p => p.productId).length > 0 && (
+                {wishlistCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {wishlist.products.filter(p => p.productId).length}
+                    {wishlistCount}
                   </span>
                 )}
               </Link>
               <Link to="/cart" className="text-slate-500 hover:text-indigo-600 transition-colors relative">
                 <ShoppingCart className="w-5 h-5" />
-                {cart?.products?.filter(p => p.productId).length > 0 && (
+                {cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {cart.products.filter(p => p.productId).reduce((acc, item) => acc + item.quantity, 0)}
+                    {cartItemCount}
                   </span>
                 )}
               </Link>
@@ -98,9 +104,9 @@ const Navbar = () => {
               <div className="flex items-center gap-3 ml-2 group relative">
                 <button className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-medium transition-colors">
                   <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
-                    {userInfo.name.charAt(0)}
+                    {userInfo.name ? userInfo.name.charAt(0).toUpperCase() : 'U'}
                   </div>
-                  <span className="text-sm">{userInfo.name.split(' ')[0]}</span>
+                  <span className="text-sm">{userInfo.name ? userInfo.name.split(' ')[0] : 'User'}</span>
                 </button>
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all flex flex-col py-2">
                   <Link to="/profile" className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2">
@@ -141,9 +147,9 @@ const Navbar = () => {
           <div className="flex items-center gap-4 md:hidden">
             <Link to="/cart" className="text-slate-500 relative">
               <ShoppingCart className="w-5 h-5" />
-              {cart?.products?.filter(p => p.productId).length > 0 && (
+              {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  {cart.products.filter(p => p.productId).reduce((acc, item) => acc + item.quantity, 0)}
+                  {cartItemCount}
                 </span>
               )}
             </Link>
