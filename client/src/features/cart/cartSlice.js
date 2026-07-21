@@ -10,7 +10,8 @@ const initialState = {
 export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, thunkAPI) => {
   try {
     const { auth } = thunkAPI.getState();
-    if (!auth.userInfo) {
+    const storedUser = localStorage.getItem('userInfo');
+    if (!auth.userInfo && !storedUser) {
       const localCart = JSON.parse(localStorage.getItem('cart') || '{"products":[], "totalAmount":0, "itemsPrice":0, "tax":0, "shipping":0, "discount":0, "subtotal":0}');
       return localCart;
     }
@@ -45,19 +46,25 @@ const calculateGuestCartTotals = (products = []) => {
   return { products, itemsPrice, discount: discountAmount, subtotal, tax, shipping, totalAmount };
 };
 
+const getGuestProductId = (item) => {
+  if (!item) return null;
+  const p = item.productId || item.product;
+  if (!p) return null;
+  return typeof p === 'object' ? p._id : p;
+};
+
 export const addToCart = createAsyncThunk('cart/addToCart', async (payload, thunkAPI) => {
   try {
     const { auth } = thunkAPI.getState();
-    // Payload might be { product, quantity } for guest, but { productId, quantity } for logged in.
-    // Ensure we handle both.
-    const productId = payload.productId || payload.product._id;
-    const quantity = payload.quantity;
+    const storedUser = localStorage.getItem('userInfo');
+    const targetProductId = payload.productId || payload.product?._id || payload.product;
+    const quantity = Number(payload.quantity) || 1;
 
-    if (!auth.userInfo) {
+    if (!auth.userInfo && !storedUser) {
       if (!payload.product) throw new Error('Product details missing for guest cart');
       
       const localCart = JSON.parse(localStorage.getItem('cart') || '{"products":[]}');
-      const existingItemIndex = localCart.products.findIndex(p => p.productId._id === productId);
+      const existingItemIndex = (localCart.products || []).findIndex(p => getGuestProductId(p) === targetProductId);
       
       if (existingItemIndex >= 0) {
         localCart.products[existingItemIndex].quantity += quantity;
@@ -73,8 +80,8 @@ export const addToCart = createAsyncThunk('cart/addToCart', async (payload, thun
       return updatedCart;
     }
 
-    await cartService.addToCart({ productId, quantity });
-    return await cartService.getCart(); // Fetch full populated cart
+    await cartService.addToCart({ productId: targetProductId, quantity });
+    return await cartService.getCart(); // Fetch full populated cart for user
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
   }
@@ -83,9 +90,10 @@ export const addToCart = createAsyncThunk('cart/addToCart', async (payload, thun
 export const updateQuantity = createAsyncThunk('cart/updateQuantity', async ({ productId, quantity }, thunkAPI) => {
   try {
     const { auth } = thunkAPI.getState();
-    if (!auth.userInfo) {
+    const storedUser = localStorage.getItem('userInfo');
+    if (!auth.userInfo && !storedUser) {
       const localCart = JSON.parse(localStorage.getItem('cart') || '{"products":[]}');
-      const existingItemIndex = localCart.products.findIndex(p => p.productId._id === productId);
+      const existingItemIndex = (localCart.products || []).findIndex(p => getGuestProductId(p) === productId);
       
       if (existingItemIndex >= 0) {
         localCart.products[existingItemIndex].quantity = quantity;
@@ -97,7 +105,7 @@ export const updateQuantity = createAsyncThunk('cart/updateQuantity', async ({ p
     }
 
     await cartService.updateQuantity(productId, quantity);
-    return await cartService.getCart(); // Fetch full populated cart
+    return await cartService.getCart(); // Fetch full populated cart for user
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
   }
@@ -106,9 +114,10 @@ export const updateQuantity = createAsyncThunk('cart/updateQuantity', async ({ p
 export const removeProduct = createAsyncThunk('cart/removeProduct', async (productId, thunkAPI) => {
   try {
     const { auth } = thunkAPI.getState();
-    if (!auth.userInfo) {
+    const storedUser = localStorage.getItem('userInfo');
+    if (!auth.userInfo && !storedUser) {
       const localCart = JSON.parse(localStorage.getItem('cart') || '{"products":[]}');
-      localCart.products = localCart.products.filter(p => p.productId._id !== productId);
+      localCart.products = (localCart.products || []).filter(p => getGuestProductId(p) !== productId);
       
       const updatedCart = calculateGuestCartTotals(localCart.products);
       localStorage.setItem('cart', JSON.stringify(updatedCart));
@@ -116,7 +125,7 @@ export const removeProduct = createAsyncThunk('cart/removeProduct', async (produ
     }
 
     await cartService.removeProduct(productId);
-    return await cartService.getCart(); // Fetch full populated cart
+    return await cartService.getCart(); // Fetch full populated cart for user
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
   }
@@ -125,13 +134,14 @@ export const removeProduct = createAsyncThunk('cart/removeProduct', async (produ
 export const clearCart = createAsyncThunk('cart/clearCart', async (_, thunkAPI) => {
   try {
     const { auth } = thunkAPI.getState();
-    if (!auth.userInfo) {
+    const storedUser = localStorage.getItem('userInfo');
+    if (!auth.userInfo && !storedUser) {
       localStorage.removeItem('cart');
-      return { products: [], totalAmount: 0 };
+      return { products: [], totalAmount: 0, itemsPrice: 0, discount: 0, subtotal: 0, tax: 0, shipping: 0 };
     }
 
     await cartService.clearCart();
-    return { products: [], totalAmount: 0 };
+    return { products: [], totalAmount: 0, itemsPrice: 0, discount: 0, subtotal: 0, tax: 0, shipping: 0 };
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
   }
@@ -142,6 +152,10 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     clearCartError: (state) => {
+      state.error = null;
+    },
+    resetCart: (state) => {
+      state.cart = { products: [], totalAmount: 0, itemsPrice: 0, discount: 0, subtotal: 0, tax: 0, shipping: 0 };
       state.error = null;
     }
   },
@@ -180,5 +194,5 @@ const cartSlice = createSlice({
   },
 });
 
-export const { clearCartError } = cartSlice.actions;
+export const { clearCartError, resetCart } = cartSlice.actions;
 export default cartSlice.reducer;
