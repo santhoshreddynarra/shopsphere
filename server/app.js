@@ -13,10 +13,8 @@ import cartRoutes from './routes/cartRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import addressRoutes from './routes/addressRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
-import paymentRoutes from './routes/paymentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import newsletterRoutes from './routes/newsletterRoutes.js';
-import { stripeWebhook } from './controllers/paymentController.js';
 
 const app = express();
 
@@ -40,8 +38,6 @@ app.use(cors({
   credentials: true,
 }));
 
-// Stripe Webhook must be parsed as raw body before express.json()
-app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
 // Basic Middleware
 app.use(express.json());
@@ -56,7 +52,6 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 

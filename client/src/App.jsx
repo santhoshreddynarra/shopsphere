@@ -16,7 +16,6 @@ import CartPage from './pages/CartPage.jsx';
 import WishlistPage from './pages/WishlistPage.jsx';
 import AddressPage from './pages/AddressPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
-import PaymentPage from './pages/PaymentPage.jsx';
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx';
 import MyOrdersPage from './pages/MyOrdersPage.jsx';
 import OrderDetailsPage from './pages/OrderDetailsPage.jsx';
@@ -73,7 +72,6 @@ const App = () => {
             <Route path="/orders" element={<MyOrdersPage />} />
             <Route path="/orders/:id" element={<OrderDetailsPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/payment/:id" element={<PaymentPage />} />
             <Route path="/order-success/:id" element={<OrderSuccessPage />} />
           </Route>
 
