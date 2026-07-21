@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import asyncHandler from '../middleware/asyncHandler.js';
 import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -123,13 +124,13 @@ const stripeWebhook = asyncHandler(async (req, res) => {
               for (const item of order.orderItems) {
                 // If populated
                 if (item.product && item.product.stock !== undefined) {
-                  item.product.stock -= item.qty;
+                  item.product.stock = Math.max(0, item.product.stock - item.qty);
                   await item.product.save();
                 } else {
                   // Fallback if not fully populated
                   const productDoc = await Product.findById(item.product);
                   if (productDoc) {
-                    productDoc.stock -= item.qty;
+                    productDoc.stock = Math.max(0, productDoc.stock - item.qty);
                     await productDoc.save();
                   }
                 }
