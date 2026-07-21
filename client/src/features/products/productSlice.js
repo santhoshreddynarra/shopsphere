@@ -20,7 +20,8 @@ const initialState = {
 export const fetchBestSellers = createAsyncThunk('products/fetchBestSellers', async (_, thunkAPI) => {
   try {
     const res = await axiosInstance.get('/products?limit=4&sort=-numSales');
-    return res.data.products;
+    const data = res.data;
+    return Array.isArray(data) ? data : (data?.products || []);
   } catch (error) {
     return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
   }
@@ -98,13 +99,27 @@ const productSlice = createSlice({
       .addCase(fetchProducts.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.products = action.payload.products;
-        state.pagination = {
-          page: action.payload.page,
-          pages: action.payload.pages,
-          total: action.payload.total,
-          limit: action.payload.limit,
-        };
+        const data = action.payload;
+        
+        if (data && Array.isArray(data.products)) {
+          state.products = data.products;
+          state.pagination = {
+            page: data.page || 1,
+            pages: data.pages || 1,
+            total: data.total || data.products.length,
+            limit: data.limit || 12,
+          };
+        } else if (Array.isArray(data)) {
+          state.products = data;
+          state.pagination = {
+            page: 1,
+            pages: 1,
+            total: data.length,
+            limit: 12,
+          };
+        } else {
+          state.products = [];
+        }
       })
       .addCase(fetchProducts.rejected, (state, action) => { state.isLoading = false; state.error = action.payload; })
       // Featured

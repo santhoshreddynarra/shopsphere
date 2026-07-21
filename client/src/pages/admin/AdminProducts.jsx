@@ -17,7 +17,9 @@ const AdminProducts = () => {
     setIsLoading(true);
     try {
       const res = await axiosInstance.get('/products?limit=100');
-      setProducts(res.data.products);
+      // Handle both cases: if the backend returns an array, or an object containing a products array
+      const productData = res.data;
+      setProducts(Array.isArray(productData) ? productData : (productData?.products || []));
     } catch (err) {
       toast.error('Failed to fetch products');
       console.error(err);
