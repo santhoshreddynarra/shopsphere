@@ -20,20 +20,24 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, thunkAPI) 
   }
 });
 
-const calculateGuestCartTotals = (products) => {
+const calculateGuestCartTotals = (products = []) => {
   let itemsPrice = 0;
   let discountAmount = 0;
   
-  products.forEach(item => {
-    const product = item.productId;
-    const currentPrice = product.discountPrice > 0 ? product.discountPrice : product.price;
-    itemsPrice += product.price * item.quantity;
-    if (product.discountPrice > 0) {
-      discountAmount += (product.price - product.discountPrice) * item.quantity;
+  (products || []).forEach(item => {
+    if (!item) return;
+    const product = item.productId || item.product || {};
+    const price = typeof product.price === 'number' ? product.price : 0;
+    const discountPrice = typeof product.discountPrice === 'number' ? product.discountPrice : 0;
+    const quantity = Number(item.quantity) || 1;
+
+    itemsPrice += price * quantity;
+    if (discountPrice > 0 && price > discountPrice) {
+      discountAmount += (price - discountPrice) * quantity;
     }
   });
   
-  const subtotal = itemsPrice - discountAmount;
+  const subtotal = Math.max(0, itemsPrice - discountAmount);
   const tax = Math.round(subtotal * 0.18);
   const shipping = subtotal > 999 || subtotal === 0 ? 0 : 99;
   const totalAmount = subtotal + tax + shipping;
