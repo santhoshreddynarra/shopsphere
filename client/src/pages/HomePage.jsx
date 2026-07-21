@@ -1,12 +1,63 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShoppingBag, ShieldCheck, Truck, Clock } from 'lucide-react';
+import toast from 'react-hot-toast';
+import axiosInstance from '../services/axiosInstance.js';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux.js';
 import { fetchFeaturedProducts, fetchProducts, fetchCategories, fetchBestSellers } from '../features/products/productSlice.js';
 import ProductGrid from '../components/ProductGrid.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 
 const HomePage = () => {
+  const [email, setEmail] = useState('');
+  const [isSubscribing, setIsSubscribing] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error(
+        <div>
+          <p className="font-bold">Invalid Email</p>
+          <p className="text-sm">Please enter a valid email address.</p>
+        </div>,
+        { id: 'newsletter-error' }
+      );
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      const { data } = await axiosInstance.post('/newsletter/subscribe', { email });
+      if (data.success) {
+        toast.success(
+          <div>
+            <p className="font-bold">Subscribed Successfully!</p>
+            <p className="text-sm">Thank you for subscribing to ShopSphere. You'll receive updates about new arrivals, exclusive offers, and upcoming sales.</p>
+          </div>,
+          { id: 'newsletter-success', duration: 5000 }
+        );
+        setEmail('');
+      } else {
+        toast(
+          <div>
+            <p className="font-bold">Already Subscribed</p>
+            <p className="text-sm">This email is already subscribed to our newsletter.</p>
+          </div>,
+          { icon: 'ℹ️', id: 'newsletter-info', duration: 4000 }
+        );
+      }
+    } catch (error) {
+      toast.error(
+        <div>
+          <p className="font-bold">Subscription Failed</p>
+          <p className="text-sm">Something went wrong. Please try again later.</p>
+        </div>,
+        { id: 'newsletter-error' }
+      );
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
   const dispatch = useAppDispatch();
   const { 
     featuredProducts, 
@@ -222,15 +273,22 @@ const HomePage = () => {
           <p className="text-indigo-100 mb-8 max-w-2xl mx-auto">
             Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals.
           </p>
-          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={handleSubscribe}>
             <input 
               type="email" 
               placeholder="Enter your email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              className="flex-1 px-6 py-4 rounded-full border-none focus:ring-4 focus:ring-indigo-300/50 outline-none"
+              disabled={isSubscribing}
+              className="flex-1 px-6 py-4 rounded-full border-none focus:ring-4 focus:ring-indigo-300/50 outline-none text-slate-900 disabled:opacity-75"
             />
-            <button type="submit" className="bg-slate-900 text-white font-bold px-8 py-4 rounded-full hover:bg-slate-800 transition">
-              Subscribe
+            <button 
+              type="submit" 
+              disabled={isSubscribing}
+              className="bg-slate-900 text-white font-bold px-8 py-4 rounded-full hover:bg-slate-800 transition disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+            >
+              {isSubscribing ? 'Subscribing...' : 'Subscribe'}
             </button>
           </form>
         </div>

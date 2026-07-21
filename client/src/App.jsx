@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from './hooks/useRedux.js';
 import { fetchCart } from './features/cart/cartSlice.js';
@@ -45,10 +46,10 @@ const AppInit = ({ children }) => {
 
   return children;
 };
-
 const App = () => {
   return (
     <BrowserRouter>
+      <Toaster position="bottom-right" />
       <AppInit>
         <Routes>
           {/* Auth pages — no layout */}
