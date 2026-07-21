@@ -64,9 +64,9 @@ const addOrderItems = asyncHandler(async (req, res) => {
     user: req.user._id,
     shippingAddress,
     paymentMethod,
-    paymentResult,
-    isPaid: isPaid || false,
-    paidAt,
+    paymentResult: undefined, // Enforced by server
+    isPaid: false, // Enforced by server
+    paidAt: undefined, // Enforced by server
     itemsPrice,
     taxPrice,
     shippingPrice,
