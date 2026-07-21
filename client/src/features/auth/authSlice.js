@@ -85,6 +85,9 @@ export const getProfileDetails = createAsyncThunk(
   }
 );
 
+export const getProfile = getProfileDetails;
+export const getUserProfile = getProfileDetails;
+
 export const updateUserProfile = createAsyncThunk(
   'auth/updateUserProfile',
   async (userData, thunkAPI) => {
@@ -97,6 +100,8 @@ export const updateUserProfile = createAsyncThunk(
     }
   }
 );
+
+export const updateProfile = updateUserProfile;
 
 export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
   try {
