@@ -41,11 +41,10 @@ const ProductCard = ({ product }) => {
       className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:-translate-y-1 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200 flex flex-col relative"
     >
       {/* Wishlist Button */}
-      <button 
+      <button
         onClick={handleWishlist}
-        className={`absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center transition-all shadow-sm focus:opacity-100 ${
-          inWishlist ? 'text-red-500 opacity-100' : 'text-slate-400 opacity-0 group-hover:opacity-100 hover:text-red-500'
-        }`}
+        className={`absolute top-3 right-3 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center transition-all shadow-sm focus:opacity-100 ${inWishlist ? 'text-red-500 opacity-100' : 'text-slate-400 opacity-0 group-hover:opacity-100 hover:text-red-500'
+          }`}
       >
         <Heart className={`w-4 h-4 ${inWishlist ? 'fill-current' : ''}`} />
       </button>
@@ -53,12 +52,13 @@ const ProductCard = ({ product }) => {
       {/* Image */}
       <div className="relative overflow-hidden aspect-[4/5] bg-slate-50">
         <img
-          src={product.images[0]}
+          src={product.images?.[0] || "/images/no-image.png"}
           alt={product.name}
           loading="lazy"
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
           onError={(e) => {
-            e.target.src = 'https://via.placeholder.com/400x500?text=No+Image';
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/images/no-image.png";
           }}
         />
         {/* Badges */}
@@ -95,7 +95,7 @@ const ProductCard = ({ product }) => {
               </p>
             )}
           </div>
-          <button 
+          <button
             onClick={handleAddToCart}
             className="w-10 h-10 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-300 shadow-sm"
           >
