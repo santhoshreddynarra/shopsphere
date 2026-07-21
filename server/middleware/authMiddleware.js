@@ -17,11 +17,11 @@ const protect = asyncHandler(async (req, res, next) => {
     } catch (error) {
       console.error(error);
       res.status(401);
-      throw new Error('Not authorized, token failed');
+      throw new Error('Unauthorized access. Token expired or invalid.');
     }
   } else {
     res.status(401);
-    throw new Error('Not authorized, no token');
+    throw new Error('Unauthorized access. Please log in.');
   }
 });
 
@@ -30,8 +30,8 @@ const admin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
     next();
   } else {
-    res.status(401);
-    throw new Error('Not authorized as admin');
+    res.status(403);
+    throw new Error('Forbidden. Admin access required.');
   }
 };
 

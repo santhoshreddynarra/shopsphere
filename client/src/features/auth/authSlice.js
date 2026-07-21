@@ -38,6 +38,16 @@ const mergeGuestData = async (thunkAPI) => {
   }
 };
 
+const extractErrorMessage = (err, defaultMsg = 'Something went wrong. Please try again later.') => {
+  const msg = err.response?.data?.message || err.response?.data?.error || err.userMessage;
+  if (msg && typeof msg === 'string' && !msg.startsWith('Request failed') && !msg.includes('AxiosError')) {
+    return msg;
+  }
+  return (err.message && typeof err.message === 'string' && !err.message.startsWith('Request failed') && !err.message.includes('AxiosError'))
+    ? err.message
+    : defaultMsg;
+};
+
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials, thunkAPI) => {
@@ -47,7 +57,7 @@ export const login = createAsyncThunk(
       await mergeGuestData(thunkAPI);
       return data;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(err, 'Invalid email or password'));
     }
   }
 );
@@ -61,12 +71,10 @@ export const register = createAsyncThunk(
       await mergeGuestData(thunkAPI);
       return data;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(err, 'Registration failed. User may already exist.'));
     }
   }
 );
-
-
 
 export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
@@ -76,7 +84,7 @@ export const updateProfile = createAsyncThunk(
       localStorage.setItem('userInfo', JSON.stringify(data));
       return data;
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(err, 'Failed to update profile.'));
     }
   }
 );
@@ -89,7 +97,7 @@ export const logout = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
     localStorage.removeItem('wishlist');
     return null;
   } catch (err) {
-    return thunkAPI.rejectWithValue(err.message);
+    return thunkAPI.rejectWithValue(extractErrorMessage(err, 'Logout failed'));
   }
 });
 
