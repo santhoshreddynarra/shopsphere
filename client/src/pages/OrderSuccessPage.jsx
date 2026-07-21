@@ -111,6 +111,7 @@ const OrderSuccessPage = () => {
                 {order.shippingAddress.addressLine1}, {order.shippingAddress.city}<br/>
                 {order.shippingAddress.state} {order.shippingAddress.postalCode}
               </p>
+            </div>
           </div>
 
           <div className="flex gap-4">
