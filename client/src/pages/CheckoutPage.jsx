@@ -75,7 +75,7 @@ const CheckoutPage = () => {
       };
 
       const { data } = await axiosInstance.post('/orders', orderData, { withCredentials: true });
-      navigate(`/payment/${data._id}`);
+      navigate(`/order-success/${data._id}`);
     } catch (error) {
       console.error('Failed to create order', error);
       alert('Failed to create order. Please try again.');
@@ -164,8 +164,9 @@ const CheckoutPage = () => {
               </div>
               <h2 className="text-xl font-bold text-slate-900">Payment Method</h2>
             </div>
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 text-sm">
-              Payment integration will be added in the next phase. You will be able to securely pay via Stripe or Razorpay.
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm font-bold flex items-center justify-between">
+              <span>Cash on Delivery (COD)</span>
+              <CheckCircle2 className="w-5 h-5 text-indigo-600" />
             </div>
           </div>
         </div>
@@ -232,7 +233,7 @@ const CheckoutPage = () => {
               disabled={!selectedAddress}
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Proceed to Payment
+              Place Order
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>

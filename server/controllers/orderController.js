@@ -10,10 +10,6 @@ const addOrderItems = asyncHandler(async (req, res) => {
   const {
     orderItems,
     shippingAddress,
-    paymentMethod,
-    paymentResult,
-    isPaid,
-    paidAt,
   } = req.body;
 
   if (!orderItems || orderItems.length === 0) {
@@ -59,14 +55,20 @@ const addOrderItems = asyncHandler(async (req, res) => {
   const shippingPrice = subtotalAfterDiscount > 999 ? 0 : 99;
   const totalPrice = subtotalAfterDiscount + taxPrice + shippingPrice;
 
+  // Deduct stock for all items
+  for (const item of orderItems) {
+    const product = await Product.findById(item.product);
+    product.stock -= item.qty;
+    await product.save();
+  }
+
   const order = new Order({
     orderItems: finalOrderItems,
     user: req.user._id,
     shippingAddress,
-    paymentMethod,
-    paymentResult: undefined, // Enforced by server
-    isPaid: false, // Enforced by server
-    paidAt: undefined, // Enforced by server
+    paymentMethod: 'Cash on Delivery',
+    isPaid: false, 
+    status: 'Processing',
     itemsPrice,
     taxPrice,
     shippingPrice,
