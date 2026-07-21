@@ -29,7 +29,7 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(helmet());
 app.use(morgan('dev'));
-const allowedOrigins = process.env.CLIENT_URL 
+const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(url => url.trim())
   : ['http://localhost:5173'];
 
@@ -43,6 +43,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "ShopSphere API is running 🚀"
+  });
+});
 
 // Routes
 app.use('/api/users', userRoutes);
